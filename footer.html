@@ -1,0 +1,39 @@
+<!-- 底部導航 -->
+<nav class="bg-white border-t border-gray-200 py-3 px-8 flex justify-around">
+    <a href="index.html" class="text-gray-500 flex flex-col items-center">
+        <i class="fas fa-home text-lg"></i>
+        <span class="text-xs mt-1">首頁</span>
+    </a>
+    <a href="plan.html" class="text-gray-500 flex flex-col items-center">
+        <i class="fas fa-calendar-alt text-lg"></i>
+        <span class="text-xs mt-1">計劃</span>
+    </a>
+    <a href="games.html" class="text-gray-500 flex flex-col items-center">
+        <i class="fas fa-gamepad text-lg"></i>
+        <span class="text-xs mt-1">遊戲</span>
+    </a>
+    <a href="parent.html" class="text-gray-500 flex flex-col items-center">
+        <i class="fas fa-user-friends text-lg"></i>
+        <span class="text-xs mt-1">家長</span>
+    </a>
+    <a href="profile.html" class="text-gray-500 flex flex-col items-center">
+        <i class="fas fa-user text-lg"></i>
+        <span class="text-xs mt-1">我的</span>
+    </a>
+</nav>
+
+<script>
+// 根據當前頁面設置活動狀態
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPage = window.location.pathname.split('/').pop();
+    const navLinks = document.querySelectorAll('nav a');
+    
+    navLinks.forEach(link => {
+        const linkPage = link.getAttribute('href');
+        if (linkPage === currentPage) {
+            link.classList.remove('text-gray-500');
+            link.classList.add('text-primary');
+        }
+    });
+});
+</script> 

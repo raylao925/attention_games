@@ -1,11 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小星专注力 - ADHD儿童训练游戏</title>
+    <title data-i18n="appName">小星專注力</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/i18next@21.6.10/dist/umd/i18next.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/i18next-browser-languagedetector@7.0.1/dist/umd/i18nextBrowserLanguageDetector.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -87,15 +90,26 @@
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-10px); }
         }
+
+        #game-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body class="bg-background">
-    <!-- 顶部导航栏 -->
+    <!-- 頂部導航欄 -->
     <header class="header-gradient text-white p-5 pt-8 pb-16 rounded-b-3xl">
         <div class="flex justify-between items-center mb-6">
             <div class="flex items-center">
                 <i class="fas fa-star text-accent text-2xl mr-2 bounce"></i>
-                <h1 class="text-2xl font-bold">小星专注力</h1>
+                <h1 class="text-2xl font-bold">小星專注力</h1>
             </div>
             <div class="flex space-x-4">
                 <button class="bg-white bg-opacity-20 p-2 rounded-full">
@@ -109,42 +123,42 @@
         
         <div class="bg-white bg-opacity-20 p-4 rounded-2xl">
             <div class="flex items-center justify-between mb-2">
-                <span class="font-medium">今日训练进度</span>
+                <span class="font-medium">今日訓練進度</span>
                 <span class="font-bold">60%</span>
             </div>
             <div class="progress-bar">
                 <div class="progress-fill" style="width: 60%"></div>
             </div>
-            <p class="text-sm mt-2 opacity-80">完成今日任务获得小星星奖励!</p>
+            <p class="text-sm mt-2 opacity-80">完成今日任務獲得小星星獎勵!</p>
         </div>
     </header>
 
-    <!-- 主要内容区域 -->
+    <!-- 主要內容區域 -->
     <main class="px-5 -mt-10">
-        <!-- 欢迎区域 -->
+        <!-- 歡迎區域 -->
         <div class="bg-white p-5 rounded-2xl shadow-md mb-6">
             <div class="flex items-center">
                 <div class="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mr-4"></div>
                 <div>
                     <h2 class="font-bold text-lg">小明, 你好!</h2>
-                    <p class="text-gray-600 text-sm">你已经有<span class="font-bold text-accent">12</span>颗小星星了</p>
+                    <p class="text-gray-600 text-sm">你已經有<span class="font-bold text-accent stars-count">12</span>顆小星星了</p>
                 </div>
             </div>
             <div class="mt-4 bg-blue-50 p-3 rounded-lg border border-blue-100">
-                <p class="text-sm text-blue-800"><i class="fas fa-info-circle mr-2"></i>今日任务: 完成3个专注力训练游戏</p>
+                <p class="text-sm text-blue-800"><i class="fas fa-info-circle mr-2"></i>今日任務: 完成3個專注力訓練遊戲</p>
             </div>
         </div>
         
-        <!-- 功能区标题 -->
+        <!-- 功能區標題 -->
         <div class="flex justify-between items-center mb-4">
-            <h2 class="font-bold text-xl text-gray-800">训练游戏</h2>
+            <h2 class="font-bold text-xl text-gray-800">訓練遊戲</h2>
             <a href="#" class="text-primary text-sm font-medium">查看全部 <i class="fas fa-chevron-right ml-1"></i></a>
         </div>
         
-        <!-- 游戏网格 -->
+        <!-- 遊戲網格 -->
         <div class="grid grid-cols-2 gap-4 mb-8">
-            <!-- 游戏卡片 1 -->
-            <a href="games.html#focus" class="game-card">
+            <!-- 遊戲卡片 1 -->
+            <a href="#" class="game-card" data-game-type="focus">
                 <div class="bg-white rounded-2xl overflow-hidden">
                     <div class="h-28 bg-gradient-to-r from-cyan-400 to-blue-500 relative">
                         <div class="absolute top-3 left-3 bg-white bg-opacity-30 rounded-full w-10 h-10 flex items-center justify-center">
@@ -155,8 +169,8 @@
                         </div>
                     </div>
                     <div class="p-3">
-                        <h3 class="font-bold text-gray-800 mb-1">专注目标</h3>
-                        <p class="text-xs text-gray-500">找出移动的目标物</p>
+                        <h3 class="font-bold text-gray-800 mb-1">專注目標</h3>
+                        <p class="text-xs text-gray-500">找出移動的目標物</p>
                         <div class="flex items-center mt-2">
                             <i class="fas fa-star text-yellow-400 text-xs mr-1"></i>
                             <span class="text-xs text-gray-500">+3 星星</span>
@@ -165,20 +179,20 @@
                 </div>
             </a>
             
-            <!-- 游戏卡片 2 -->
-            <a href="games.html#memory" class="game-card">
+            <!-- 遊戲卡片 2 -->
+            <a href="#" class="game-card" data-game-type="memory">
                 <div class="bg-white rounded-2xl overflow-hidden">
                     <div class="h-28 bg-gradient-to-r from-purple-400 to-indigo-500 relative">
                         <div class="absolute top-3 left-3 bg-white bg-opacity-30 rounded-full w-10 h-10 flex items-center justify-center">
                             <i class="fas fa-brain text-white text-xl"></i>
                         </div>
                         <div class="absolute bottom-3 right-3 bg-white text-purple-600 rounded-full px-2 py-1 text-xs font-bold">
-                            记忆力
+                            記憶力
                         </div>
                     </div>
                     <div class="p-3">
-                        <h3 class="font-bold text-gray-800 mb-1">记忆大师</h3>
-                        <p class="text-xs text-gray-500">记住出现的图案顺序</p>
+                        <h3 class="font-bold text-gray-800 mb-1">記憶大師</h3>
+                        <p class="text-xs text-gray-500">記住出現的圖案順序</p>
                         <div class="flex items-center mt-2">
                             <i class="fas fa-star text-yellow-400 text-xs mr-1"></i>
                             <span class="text-xs text-gray-500">+2 星星</span>
@@ -187,20 +201,20 @@
                 </div>
             </a>
             
-            <!-- 游戏卡片 3 -->
-            <a href="games.html#reaction" class="game-card">
+            <!-- 遊戲卡片 3 -->
+            <a href="#" class="game-card" data-game-type="reaction">
                 <div class="bg-white rounded-2xl overflow-hidden">
                     <div class="h-28 bg-gradient-to-r from-green-400 to-teal-500 relative">
                         <div class="absolute top-3 left-3 bg-white bg-opacity-30 rounded-full w-10 h-10 flex items-center justify-center">
                             <i class="fas fa-bolt text-white text-xl"></i>
                         </div>
                         <div class="absolute bottom-3 right-3 bg-white text-green-600 rounded-full px-2 py-1 text-xs font-bold">
-                            反应力
+                            反應力
                         </div>
                     </div>
                     <div class="p-3">
-                        <h3 class="font-bold text-gray-800 mb-1">快速反应</h3>
-                        <p class="text-xs text-gray-500">在正确时间点击目标</p>
+                        <h3 class="font-bold text-gray-800 mb-1">快速反應</h3>
+                        <p class="text-xs text-gray-500">在正確時間點擊目標</p>
                         <div class="flex items-center mt-2">
                             <i class="fas fa-star text-yellow-400 text-xs mr-1"></i>
                             <span class="text-xs text-gray-500">+2 星星</span>
@@ -209,20 +223,20 @@
                 </div>
             </a>
             
-            <!-- 游戏卡片 4 -->
-            <a href="games.html#flexibility" class="game-card">
+            <!-- 遊戲卡片 4 -->
+            <a href="#" class="game-card" data-game-type="flexibility">
                 <div class="bg-white rounded-2xl overflow-hidden">
                     <div class="h-28 bg-gradient-to-r from-amber-400 to-orange-500 relative">
                         <div class="absolute top-3 left-3 bg-white bg-opacity-30 rounded-full w-10 h-10 flex items-center justify-center">
                             <i class="fas fa-random text-white text-xl"></i>
                         </div>
                         <div class="absolute bottom-3 right-3 bg-white text-amber-600 rounded-full px-2 py-1 text-xs font-bold">
-                            灵活性
+                            靈活性
                         </div>
                     </div>
                     <div class="p-3">
-                        <h3 class="font-bold text-gray-800 mb-1">转换挑战</h3>
-                        <p class="text-xs text-gray-500">根据规则快速切换任务</p>
+                        <h3 class="font-bold text-gray-800 mb-1">轉換挑戰</h3>
+                        <p class="text-xs text-gray-500">根據規則快速切換任務</p>
                         <div class="flex items-center mt-2">
                             <i class="fas fa-star text-yellow-400 text-xs mr-1"></i>
                             <span class="text-xs text-gray-500">+4 星星</span>
@@ -232,23 +246,23 @@
             </a>
         </div>
         
-        <!-- 训练计划部分 -->
+        <!-- 訓練計劃部分 -->
         <div class="bg-gradient-to-r from-primary to-secondary text-white p-5 rounded-2xl mb-8">
             <div class="flex justify-between items-start mb-4">
                 <div>
-                    <h2 class="font-bold text-xl mb-1">每日训练计划</h2>
-                    <p class="opacity-80 text-sm">个性化训练，科学提升专注力</p>
+                    <h2 class="font-bold text-xl mb-1">每日訓練計劃</h2>
+                    <p class="opacity-80 text-sm">個性化訓練，科學提升專注力</p>
                 </div>
                 <div class="bg-white text-primary rounded-full px-3 py-1 text-sm font-bold">
-                    进行中
+                    進行中
                 </div>
             </div>
             
             <div class="bg-white bg-opacity-20 p-4 rounded-xl">
                 <div class="flex justify-between mb-3">
                     <div>
-                        <h3 class="font-bold">今日任务</h3>
-                        <p class="text-sm opacity-90">完成3个训练游戏</p>
+                        <h3 class="font-bold">今日任務</h3>
+                        <p class="text-sm opacity-90">完成3個訓練遊戲</p>
                     </div>
                     <div class="text-right">
                         <p class="text-2xl font-bold">1<span class="text-lg">/3</span></p>
@@ -258,21 +272,21 @@
                 <div class="flex justify-between text-xs">
                     <div>
                         <i class="fas fa-check-circle text-success mr-1"></i>
-                        <span>专注目标</span>
+                        <span>專注目標</span>
                     </div>
                     <div class="opacity-50">
                         <i class="far fa-circle mr-1"></i>
-                        <span>记忆大师</span>
+                        <span>記憶大師</span>
                     </div>
                     <div class="opacity-50">
                         <i class="far fa-circle mr-1"></i>
-                        <span>快速反应</span>
+                        <span>快速反應</span>
                     </div>
                 </div>
             </div>
             
             <button class="w-full bg-white text-primary py-3 rounded-xl font-bold mt-4 shadow-md">
-                继续训练
+                繼續訓練
             </button>
         </div>
         
@@ -289,7 +303,7 @@
                     <div class="w-16 h-16 rounded-full bg-amber-50 border-2 border-amber-300 flex items-center justify-center">
                         <i class="fas fa-medal text-amber-400 text-2xl"></i>
                     </div>
-                    <p class="text-xs font-medium mt-2">专注小达人</p>
+                    <p class="text-xs font-medium mt-2">專注小達人</p>
                 </div>
                 
                 <!-- 成就徽章 2 -->
@@ -297,7 +311,7 @@
                     <div class="w-16 h-16 rounded-full bg-blue-50 border-2 border-blue-300 flex items-center justify-center">
                         <i class="fas fa-fire text-blue-400 text-2xl"></i>
                     </div>
-                    <p class="text-xs font-medium mt-2">7天连胜</p>
+                    <p class="text-xs font-medium mt-2">7天連勝</p>
                 </div>
                 
                 <!-- 成就徽章 3 -->
@@ -305,7 +319,7 @@
                     <div class="w-16 h-16 rounded-full bg-purple-50 border-2 border-purple-300 flex items-center justify-center">
                         <i class="fas fa-infinity text-purple-400 text-2xl"></i>
                     </div>
-                    <p class="text-xs font-medium mt-2">记忆大师</p>
+                    <p class="text-xs font-medium mt-2">記憶大師</p>
                 </div>
                 
                 <!-- 成就徽章 4 -->
@@ -313,56 +327,89 @@
                     <div class="w-16 h-16 rounded-full bg-gray-100 border-2 border-gray-300 flex items-center justify-center opacity-40">
                         <i class="fas fa-crown text-gray-300 text-2xl"></i>
                     </div>
-                    <p class="text-xs font-medium mt-2 text-gray-400">超级星星</p>
+                    <p class="text-xs font-medium mt-2 text-gray-400">超級星星</p>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- 底部导航 -->
-    <nav class="bg-white border-t border-gray-200 py-3 px-8 flex justify-around fixed bottom-0 w-full max-w-[500px]">
-        <a href="index.html" class="text-primary flex flex-col items-center">
-            <i class="fas fa-home text-lg"></i>
-            <span class="text-xs mt-1">首页</span>
-        </a>
-        <a href="plan.html" class="text-gray-500 flex flex-col items-center">
-            <i class="fas fa-calendar-alt text-lg"></i>
-            <span class="text-xs mt-1">计划</span>
-        </a>
-        <a href="games.html" class="text-gray-500 flex flex-col items-center">
-            <i class="fas fa-gamepad text-lg"></i>
-            <span class="text-xs mt-1">游戏</span>
-        </a>
-        <a href="parent.html" class="text-gray-500 flex flex-col items-center">
-            <i class="fas fa-user-friends text-lg"></i>
-            <span class="text-xs mt-1">家长</span>
-        </a>
-        <a href="profile.html" class="text-gray-500 flex flex-col items-center">
-            <i class="fas fa-user text-lg"></i>
-            <span class="text-xs mt-1">我的</span>
-        </a>
-    </nav>
+    <!-- 遊戲容器 -->
+    <div id="game-container"></div>
 
-    <!-- 浮动开始按钮 -->
+    <!-- 底部導航 -->
+    <div id="footer-container"></div>
+
+    <!-- 浮動開始按鈕 -->
     <a href="games.html" class="fixed bottom-20 right-5 w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white floating-btn">
         <i class="fas fa-play text-xl"></i>
     </a>
 
+    <!-- 語言切換按鈕 -->
+    <div class="fixed top-4 right-4 z-50">
+        <button id="languageSwitch" class="bg-white bg-opacity-20 p-2 rounded-full text-white">
+            <i class="fas fa-globe"></i>
+        </button>
+    </div>
+
     <script>
-        // 简单交互效果
+        // 遊戲卡片點擊事件
         document.querySelectorAll('.game-card').forEach(card => {
             card.addEventListener('click', function(e) {
                 e.preventDefault();
-                alert('进入游戏: ' + this.querySelector('h3').textContent);
+                const gameType = this.getAttribute('data-game-type');
+                // 根據遊戲類型跳轉到對應的頁面
+                switch(gameType) {
+                    case 'focus':
+                        window.location.href = 'FocusGame.html';
+                        break;
+                    case 'memory':
+                        window.location.href = 'MemoryGame.html';
+                        break;
+                    case 'reaction':
+                        window.location.href = 'ReactionGame.html';
+                        break;
+                    case 'flexibility':
+                        window.location.href = 'FlexibilityGame.html';
+                        break;
+                }
             });
         });
         
-        // 开始按钮动画
+        // 開始按鈕動畫
         const startBtn = document.querySelector('.floating-btn');
         startBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            alert('开始今日训练！');
+            window.location.href = 'games.html';
+        });
+
+        // 語言切換功能
+        document.getElementById('languageSwitch').addEventListener('click', () => {
+            const currentLang = i18next.language;
+            const newLang = currentLang === 'zh-TW' ? 'en' : 'zh-TW';
+            i18next.changeLanguage(newLang);
+            updateContent();
+        });
+
+        // 更新頁面內容
+        function updateContent() {
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                element.textContent = i18next.t(key);
+            });
+        }
+
+        // 初始化時更新內容
+        i18next.on('initialized', () => {
+            updateContent();
         });
     </script>
+
+    <!-- 腳本 -->
+    <script src="js/app.js"></script>
+    <script src="js/games/FocusGame.js"></script>
+    <script src="js/games/MemoryGame.js"></script>
+    <script src="js/games/ReactionGame.js"></script>
+    <script src="js/games/FlexibilityGame.js"></script>
+    <script src="js/footer.js"></script>
 </body>
 </html>
