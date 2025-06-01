@@ -15,11 +15,11 @@ class FlexibilityGameScene extends Phaser.Scene {
 
     preload() {
         // Load game assets
-        this.load.image('circle', 'assets/circle.png');
-        this.load.image('square', 'assets/square.png');
-        this.load.image('background', 'assets/background.png');
-        this.load.audio('success', 'assets/success.mp3');
-        this.load.audio('fail', 'assets/fail.mp3');
+        this.load.image('circle', 'assets/images/circle.png');
+        this.load.image('square', 'assets/images/square.png');
+        this.load.image('background', 'assets/images/background.png');
+        this.load.audio('success', 'assets/sounds/success.mp3');
+        this.load.audio('fail', 'assets/sounds/fail.mp3');
     }
 
     create() {

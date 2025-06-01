@@ -8,16 +8,18 @@ class ReactionGameScene extends Phaser.Scene {
         this.scoreText = null;
         this.timeText = null;
         this.gameOver = false;
+        this.isPaused = false;
+        this.isMuted = false;
     }
 
     preload() {
         // Load game assets with error handling
         try {
             // 主要資源
-            this.load.image('target', 'assets/target.png');
-            this.load.image('background', 'assets/background.png');
-            this.load.audio('success', 'assets/success.mp3');
-            this.load.audio('fail', 'assets/fail.mp3');
+            this.load.image('target', 'assets/images/target.png');
+            this.load.image('background', 'assets/images/background.png');
+            this.load.audio('success', 'assets/sounds/success.mp3');
+            this.load.audio('fail', 'assets/sounds/fail.mp3');
 
             // 備用資源
             this.load.image('target_fallback', 'https://cdn.pixabay.com/photo/2016/03/31/19/13/bullseye-1294931_1280.png');
@@ -59,7 +61,7 @@ class ReactionGameScene extends Phaser.Scene {
                 fill: '#fff',
                 stroke: '#000',
                 strokeThickness: 4
-            });
+            }).setScrollFactor(0);
 
             // 添加時間文本
             this.timeText = this.add.text(16, 56, 'Time: 5:00', {
@@ -67,7 +69,23 @@ class ReactionGameScene extends Phaser.Scene {
                 fill: '#fff',
                 stroke: '#000',
                 strokeThickness: 4
-            });
+            }).setScrollFactor(0);
+
+            // 添加遊戲說明
+            this.add.text(400, 300, '當目標變綠時點擊！', {
+                fontSize: '24px',
+                fill: '#fff',
+                stroke: '#000',
+                strokeThickness: 4
+            }).setOrigin(0.5).setScrollFactor(0);
+
+            // 添加鍵盤控制說明
+            this.add.text(400, 340, '使用空白鍵點擊目標', {
+                fontSize: '20px',
+                fill: '#fff',
+                stroke: '#000',
+                strokeThickness: 3
+            }).setOrigin(0.5).setScrollFactor(0);
 
             // 開始遊戲
             this.spawnTarget();
@@ -79,14 +97,95 @@ class ReactionGameScene extends Phaser.Scene {
                 callbackScope: this,
                 loop: true
             });
+
+            // 設置鍵盤控制
+            this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+            this.spaceKey.on('down', () => {
+                if (this.target && this.target.visible) {
+                    this.targetClicked();
+                }
+            });
+
+            // 設置暫停功能
+            this.pauseKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
+            this.pauseKey.on('down', () => {
+                this.togglePause();
+            });
+
+            // 設置音效控制
+            this.muteKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.M);
+            this.muteKey.on('down', () => {
+                this.toggleMute();
+            });
+
+            // 設置全螢幕控制
+            this.fullscreenKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+            this.fullscreenKey.on('down', () => {
+                this.toggleFullscreen();
+            });
+
+            // 設置遊戲控制按鈕事件
+            this.setupControlButtons();
         } catch (error) {
             console.error('Error in create method:', error);
             this.scene.restart();
         }
     }
 
-    update() {
+    setupControlButtons() {
+        // 暫停按鈕
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            this.togglePause();
+        });
+
+        // 音效按鈕
+        document.getElementById('soundBtn').addEventListener('click', () => {
+            this.toggleMute();
+        });
+
+        // 全螢幕按鈕
+        document.getElementById('fullscreenBtn').addEventListener('click', () => {
+            this.toggleFullscreen();
+        });
+    }
+
+    togglePause() {
         if (this.gameOver) return;
+
+        this.isPaused = !this.isPaused;
+        if (this.isPaused) {
+            this.scene.pause();
+            document.getElementById('pauseBtn').setAttribute('aria-label', '繼續遊戲');
+            document.getElementById('pauseBtn').querySelector('i').className = 'fas fa-play';
+        } else {
+            this.scene.resume();
+            document.getElementById('pauseBtn').setAttribute('aria-label', '暫停遊戲');
+            document.getElementById('pauseBtn').querySelector('i').className = 'fas fa-pause';
+        }
+    }
+
+    toggleMute() {
+        this.isMuted = !this.isMuted;
+        this.sound.mute = this.isMuted;
+        document.getElementById('soundBtn').setAttribute('aria-label', this.isMuted ? '開啟音效' : '關閉音效');
+        document.getElementById('soundBtn').querySelector('i').className = this.isMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+    }
+
+    toggleFullscreen() {
+        const gameContainer = document.getElementById('game-container');
+        if (!document.fullscreenElement) {
+            gameContainer.requestFullscreen();
+            document.getElementById('fullscreenBtn').setAttribute('aria-label', '退出全螢幕');
+            document.getElementById('fullscreenBtn').querySelector('i').className = 'fas fa-compress';
+        } else {
+            document.exitFullscreen();
+            document.getElementById('fullscreenBtn').setAttribute('aria-label', '切換全螢幕');
+            document.getElementById('fullscreenBtn').querySelector('i').className = 'fas fa-expand';
+        }
+    }
+
+    update() {
+        if (this.gameOver || this.isPaused) return;
 
         // 更新目標位置
         if (this.target && this.target.visible) {
@@ -121,7 +220,7 @@ class ReactionGameScene extends Phaser.Scene {
     }
 
     spawnTarget() {
-        if (this.gameOver) return;
+        if (this.gameOver || this.isPaused) return;
 
         try {
             // 隨機位置
@@ -135,8 +234,9 @@ class ReactionGameScene extends Phaser.Scene {
             // 隨機延遲後激活目標
             const delay = Phaser.Math.Between(1000, 3000);
             this.time.delayedCall(delay, () => {
-                if (!this.gameOver) {
+                if (!this.gameOver && !this.isPaused) {
                     this.isTargetActive = true;
+                    this.target.setTint(0x00ff00); // 變綠表示可以點擊
                     // 如果玩家沒有及時點擊，目標會消失
                     this.time.delayedCall(1000, this.targetMissed, [], this);
                 }
@@ -148,7 +248,7 @@ class ReactionGameScene extends Phaser.Scene {
     }
 
     targetClicked() {
-        if (!this.target.visible || this.gameOver) return;
+        if (!this.target.visible || this.gameOver || this.isPaused) return;
 
         try {
             if (this.isTargetActive) {
@@ -176,7 +276,7 @@ class ReactionGameScene extends Phaser.Scene {
     }
 
     targetMissed() {
-        if (!this.isTargetActive || this.gameOver) return;
+        if (!this.isTargetActive || this.gameOver || this.isPaused) return;
 
         try {
             this.sound.play('fail');
@@ -195,7 +295,7 @@ class ReactionGameScene extends Phaser.Scene {
     }
 
     updateTimer() {
-        if (this.gameOver) return;
+        if (this.gameOver || this.isPaused) return;
 
         try {
             this.timeRemaining--;
@@ -261,6 +361,14 @@ class ReactionGameScene extends Phaser.Scene {
             .on('pointerdown', () => {
                 this.scene.restart();
             });
+
+            // 添加鍵盤控制
+            this.input.keyboard.once('keydown-SPACE', () => {
+                this.scene.restart();
+            });
+
+            // 更新 ARIA 標籤
+            document.getElementById('game-container').setAttribute('aria-label', `遊戲結束，得分：${this.score}，按空白鍵重新開始`);
         } catch (error) {
             console.error('Error showing game over:', error);
             this.scene.restart();

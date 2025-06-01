@@ -10,9 +10,9 @@ class MemoryGameScene extends Phaser.Scene {
 
     preload() {
         // Load game assets
-        this.load.image('tile', 'assets/tile.png');
-        this.load.image('background', 'assets/background.png');
-        this.load.audio('beep', 'assets/beep.mp3');
+        this.load.image('tile', 'assets/images/tile.png');
+        this.load.image('background', 'assets/images/background.png');
+        this.load.audio('beep', 'assets/sounds/beep.mp3');
     }
 
     create() {

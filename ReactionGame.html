@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-i18n="reactionGame">快速反應</title>
+    <title data-i18n="reactionGame">反應大師</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
@@ -57,8 +57,8 @@
     </a>
     
     <div class="game-header">
-        <h1 class="text-2xl font-bold" data-i18n="reactionGame">快速反應</h1>
-        <p class="text-sm opacity-80" data-i18n="clickTarget">在正確時間點擊目標</p>
+        <h1 class="text-2xl font-bold" data-i18n="reactionGame">反應大師</h1>
+        <p class="text-sm opacity-80" data-i18n="clickWhenGreen">當目標變綠時點擊</p>
     </div>
 
     <!-- 語言切換按鈕 -->
@@ -72,6 +72,7 @@
 
     <!-- 遊戲相關腳本 -->
     <script src="js/i18n/config.js"></script>
+    <script src="js/games/ReactionGame.js"></script>
     <script>
         // 語言切換功能
         document.getElementById('languageSwitch').addEventListener('click', () => {

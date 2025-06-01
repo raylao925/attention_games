@@ -3,547 +3,378 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-i18n="games">遊戲中心</title>
+    <title data-i18n="appName">小星專注力</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#4F46E5',
-                        secondary: '#818CF8',
-                        accent: '#FBBF24',
-                        success: '#10B981',
-                        background: '#F9FAFB',
-                        attention: '#3B82F6',
-                        memory: '#8B5CF6',
-                        reaction: '#10B981',
-                        flexibility: '#F59E0B'
-                    }
-                }
-            }
-        }
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/i18next@21.6.10/dist/umd/i18next.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/i18next-browser-languagedetector@7.0.1/dist/umd/i18nextBrowserLanguageDetector.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Nunito:wght@400;600;700&display=swap');
-        
-        body {
-            font-family: 'Nunito', 'Helvetica Neue', sans-serif;
-            background-color: #F9FAFB;
-            max-width: 500px;
-            margin: 0 auto;
-            box-shadow: 0 0 30px rgba(0,0,0,0.1);
-            min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
+        /* 高對比度模式 */
+        .high-contrast {
+            --text-color: #FFFFFF;
+            --bg-color: #000000;
+            --primary-color: #FFFF00;
+            --secondary-color: #00FFFF;
+            --accent-color: #FF00FF;
         }
-        
-        .child-font {
-            font-family: 'Comic Neue', cursive;
+
+        .high-contrast body {
+            color: var(--text-color);
+            background-color: var(--bg-color);
         }
-        
-        .header-gradient {
-            background: linear-gradient(135deg, #4F46E5 0%, #818CF8 100%);
+
+        .high-contrast .game-card {
+            border: 2px solid var(--primary-color);
         }
-        
-        .game-card {
-            transition: all 0.3s ease;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+
+        .high-contrast .floating-btn {
+            background-color: var(--primary-color);
+            color: var(--bg-color);
         }
-        
-        .game-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+
+        /* 鍵盤導航焦點樣式 */
+        *:focus {
+            outline: 3px solid #4F46E5;
+            outline-offset: 2px;
         }
-        
-        .progress-bar {
-            height: 10px;
-            border-radius: 5px;
-            background: #E5E7EB;
-            overflow: hidden;
+
+        .high-contrast *:focus {
+            outline: 3px solid var(--primary-color);
         }
-        
-        .progress-fill {
-            height: 100%;
-            border-radius: 5px;
-            background: linear-gradient(90deg, #FBBF24 0%, #F59E0B 100%);
-            transition: width 0.5s ease;
-        }
-        
-        .floating-btn {
-            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
-            transition: all 0.3s ease;
-        }
-        
-        .floating-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
-        }
-        
-        .category-btn {
-            transition: all 0.3s ease;
-        }
-        
-        .category-btn.active {
-            background: linear-gradient(135deg, #4F46E5 0%, #818CF8 100%);
+
+        /* 跳過導航連結 */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #4F46E5;
             color: white;
-            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+            padding: 8px;
+            z-index: 100;
         }
-        
-        .difficulty-badge {
-            font-size: 0.7rem;
-            padding: 2px 8px;
-            border-radius: 10px;
+
+        .skip-link:focus {
+            top: 0;
         }
-        
-        .tab-content {
+
+        /* 遊戲容器樣式 */
+        #game-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
             display: none;
         }
-        
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
+
+        /* 遊戲控制按鈕 */
+        .game-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1001;
+            display: flex;
+            gap: 10px;
         }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        .game-control-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-        
-        .game-detail {
-            display: none;
+
+        .game-control-btn:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.1);
         }
-        
-        .game-detail.active {
-            display: block;
-            animation: slideUp 0.4s ease;
-        }
-        
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        .high-contrast .game-control-btn {
+            background: var(--primary-color);
+            color: var(--bg-color);
         }
     </style>
 </head>
 <body class="bg-background">
+    <!-- 跳過導航連結 -->
+    <a href="#main-content" class="skip-link" data-i18n="skipToContent">跳過導航</a>
+
     <!-- 頂部導航欄 -->
-    <header class="header-gradient text-white p-5 pt-6 pb-6">
+    <header class="header-gradient text-white p-5 pt-6 pb-6" role="banner">
         <div class="flex items-center justify-between mb-4">
-            <a href="index.html" class="p-2 rounded-full bg-white bg-opacity-20">
-                <i class="fas fa-arrow-left"></i>
+            <a href="index.html" class="p-2 rounded-full bg-white bg-opacity-20" aria-label="返回主頁">
+                <i class="fas fa-arrow-left" aria-hidden="true"></i>
             </a>
-            <h1 class="text-xl font-bold">遊戲中心</h1>
-            <div class="p-2 rounded-full bg-white bg-opacity-20">
-                <i class="fas fa-search"></i>
-            </div>
-        </div>
-        
-        <!-- 分類標籤 -->
-        <div class="flex overflow-x-auto pb-2 space-x-3 -mx-1 px-1">
-            <button class="category-btn active" data-category="all">
-                全部遊戲
-            </button>
-            <button class="category-btn" data-category="attention" style="background-color: #DBEAFE; color: #1D4ED8;">
-                <i class="fas fa-bullseye mr-1"></i>注意力
-            </button>
-            <button class="category-btn" data-category="memory" style="background-color: #EDE9FE; color: #5B21B6;">
-                <i class="fas fa-brain mr-1"></i>記憶力
-            </button>
-            <button class="category-btn" data-category="reaction" style="background-color: #D1FAE5; color: #047857;">
-                <i class="fas fa-bolt mr-1"></i>反應力
-            </button>
-            <button class="category-btn" data-category="flexibility" style="background-color: #FEF3C7; color: #B45309;">
-                <i class="fas fa-random mr-1"></i>靈活性
+            <h1 class="text-xl font-bold" data-i18n="appName">小星專注力</h1>
+            <button id="contrastToggle" class="p-2 rounded-full bg-white bg-opacity-20" aria-label="切換高對比度模式">
+                <i class="fas fa-adjust" aria-hidden="true"></i>
             </button>
         </div>
     </header>
 
-    <!-- 遊戲內容區域 -->
-    <main class="px-5 py-4">
-        <!-- 推薦遊戲 -->
-        <div class="mb-6">
-            <h2 class="font-bold text-lg text-gray-800 mb-3">推薦遊戲</h2>
-            <div class="bg-white rounded-2xl overflow-hidden shadow-md">
-                <div class="relative">
-                    <div class="h-48 bg-gradient-to-r from-cyan-400 to-blue-500 flex items-center justify-center">
-                        <div class="text-center">
-                            <i class="fas fa-bullseye text-white text-5xl mb-2"></i>
-                            <h3 class="text-white font-bold text-xl">專注目標挑戰</h3>
-                            <p class="text-blue-100 mt-1">高級注意力訓練</p>
-                        </div>
-                    </div>
-                    <div class="absolute top-3 right-3 bg-white text-blue-600 rounded-full px-3 py-1 text-xs font-bold">
-                        熱門
-                    </div>
-                </div>
-                
-                <div class="p-4">
-                    <div class="flex justify-between items-center mb-3">
-                        <div>
-                            <span class="difficulty-badge bg-blue-100 text-blue-800">中等難度</span>
-                            <span class="difficulty-badge bg-yellow-100 text-yellow-800 ml-2"><i class="fas fa-star mr-1"></i>+5</span>
-                        </div>
-                        <div class="text-gray-500 text-sm">
-                            <i class="fas fa-users mr-1"></i> 2.5k 參與
-                        </div>
-                    </div>
-                    
-                    <p class="text-gray-600 text-sm mb-4">
-                        在移動的目標中找出特定圖案，提升注意力集中能力和視覺追蹤能力。
-                    </p>
-                    
-                    <button class="game-start-btn w-full bg-blue-500 text-white py-3 rounded-xl font-bold shadow-md hover:bg-blue-600 transition"
-                            data-game="focus-target">
-                        開始遊戲
-                    </button>
-                </div>
-            </div>
+    <!-- 主要內容區域 -->
+    <main id="main-content" role="main">
+        <!-- 遊戲分類按鈕 -->
+        <div class="flex justify-center space-x-4 mb-8" role="tablist" aria-label="遊戲分類">
+            <button class="category-btn active px-4 py-2 rounded-full bg-primary text-white" 
+                    role="tab"
+                    aria-selected="true"
+                    aria-controls="all-games"
+                    tabindex="0">
+                全部遊戲
+            </button>
+            <button class="category-btn px-4 py-2 rounded-full bg-gray-200 text-gray-700"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="focus-games"
+                    tabindex="0">
+                專注力
+            </button>
+            <button class="category-btn px-4 py-2 rounded-full bg-gray-200 text-gray-700"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="memory-games"
+                    tabindex="0">
+                記憶力
+            </button>
+            <button class="category-btn px-4 py-2 rounded-full bg-gray-200 text-gray-700"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="reaction-games"
+                    tabindex="0">
+                反應力
+            </button>
         </div>
-        
+
         <!-- 遊戲列表 -->
-        <div class="mb-8">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="font-bold text-lg text-gray-800">所有訓練遊戲</h2>
-                <div class="flex">
-                    <button class="bg-gray-100 p-2 rounded-lg mr-2">
-                        <i class="fas fa-sort-amount-down"></i>
-                    </button>
-                    <button class="bg-gray-100 p-2 rounded-lg">
-                        <i class="fas fa-filter"></i>
-                    </button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4" role="tabpanel" id="all-games">
+            <!-- 專注力遊戲卡片 -->
+            <div class="game-card bg-white p-4 rounded-lg shadow-md cursor-pointer"
+                 data-game-type="focus"
+                 role="button"
+                 tabindex="0"
+                 aria-label="專注力訓練遊戲"
+                 onkeypress="if(event.key === 'Enter') this.click()">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                        <i class="fas fa-bullseye text-blue-500 text-2xl" aria-hidden="true"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800" data-i18n="focusGame">專注力訓練</h2>
+                        <p class="text-sm text-gray-600" data-i18n="focusGameDesc">提升注意力集中能力</p>
+                    </div>
                 </div>
             </div>
-            
-            <div class="space-y-4">
-                <!-- 遊戲 1 -->
-                <div class="game-card bg-white">
-                    <div class="flex p-4">
-                        <div class="w-16 h-16 rounded-xl bg-gradient-to-r from-purple-400 to-indigo-500 flex items-center justify-center mr-4">
-                            <i class="fas fa-brain text-white text-2xl"></i>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex justify-between">
-                                <h3 class="font-bold text-gray-800">記憶大師</h3>
-                                <span class="difficulty-badge bg-purple-100 text-purple-800">初級</span>
-                            </div>
-                            <p class="text-sm text-gray-500 mt-1">記住出現的圖案順序</p>
-                            <div class="flex items-center mt-2">
-                                <i class="fas fa-star text-yellow-400 text-xs mr-1"></i>
-                                <span class="text-xs text-gray-500 mr-3">+2 星星</span>
-                                <i class="fas fa-clock text-gray-400 text-xs mr-1"></i>
-                                <span class="text-xs text-gray-500">5分鐘</span>
-                            </div>
-                        </div>
+
+            <!-- 記憶力遊戲卡片 -->
+            <div class="game-card bg-white p-4 rounded-lg shadow-md cursor-pointer"
+                 data-game-type="memory"
+                 role="button"
+                 tabindex="0"
+                 aria-label="記憶力訓練遊戲"
+                 onkeypress="if(event.key === 'Enter') this.click()">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mr-4">
+                        <i class="fas fa-brain text-purple-500 text-2xl" aria-hidden="true"></i>
                     </div>
-                    <div class="px-4 pb-4">
-                        <button class="game-detail-btn w-full bg-gray-100 py-2 rounded-lg text-gray-700 font-medium"
-                                data-game="memory-master">
-                            查看詳情
-                        </button>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800" data-i18n="memoryGame">記憶力訓練</h2>
+                        <p class="text-sm text-gray-600" data-i18n="memoryGameDesc">增強短期記憶能力</p>
                     </div>
                 </div>
-                
-                <!-- 遊戲 2 -->
-                <div class="game-card bg-white">
-                    <div class="flex p-4">
-                        <div class="w-16 h-16 rounded-xl bg-gradient-to-r from-green-400 to-teal-500 flex items-center justify-center mr-4">
-                            <i class="fas fa-bolt text-white text-2xl"></i>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex justify-between">
-                                <h3 class="font-bold text-gray-800">快速反應</h3>
-                                <span class="difficulty-badge bg-green-100 text-green-800">初級</span>
-                            </div>
-                            <p class="text-sm text-gray-500 mt-1">在正確時間點擊目標</p>
-                            <div class="flex items-center mt-2">
-                                <i class="fas fa-star text-yellow-400 text-xs mr-1"></i>
-                                <span class="text-xs text-gray-500 mr-3">+2 星星</span>
-                                <i class="fas fa-clock text-gray-400 text-xs mr-1"></i>
-                                <span class="text-xs text-gray-500">3分鐘</span>
-                            </div>
-                        </div>
+            </div>
+
+            <!-- 反應力遊戲卡片 -->
+            <div class="game-card bg-white p-4 rounded-lg shadow-md cursor-pointer"
+                 data-game-type="reaction"
+                 role="button"
+                 tabindex="0"
+                 aria-label="反應力訓練遊戲"
+                 onkeypress="if(event.key === 'Enter') this.click()">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mr-4">
+                        <i class="fas fa-bolt text-green-500 text-2xl" aria-hidden="true"></i>
                     </div>
-                    <div class="px-4 pb-4">
-                        <button class="game-detail-btn w-full bg-gray-100 py-2 rounded-lg text-gray-700 font-medium"
-                                data-game="quick-reaction">
-                            查看詳情
-                        </button>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800" data-i18n="reactionGame">反應力訓練</h2>
+                        <p class="text-sm text-gray-600" data-i18n="reactionGameDesc">提升反應速度和準確性</p>
                     </div>
                 </div>
-                
-                <!-- 遊戲 3 -->
-                <div class="game-card bg-white">
-                    <div class="flex p-4">
-                        <div class="w-16 h-16 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center mr-4">
-                            <i class="fas fa-random text-white text-2xl"></i>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex justify-between">
-                                <h3 class="font-bold text-gray-800">轉換挑戰</h3>
-                                <span class="difficulty-badge bg-amber-100 text-amber-800">高級</span>
-                            </div>
-                            <p class="text-sm text-gray-500 mt-1">根據規則快速切換任務</p>
-                            <div class="flex items-center mt-2">
-                                <i class="fas fa-star text-yellow-400 text-xs mr-1"></i>
-                                <span class="text-xs text-gray-500 mr-3">+4 星星</span>
-                                <i class="fas fa-clock text-gray-400 text-xs mr-1"></i>
-                                <span class="text-xs text-gray-500">8分鐘</span>
-                            </div>
-                        </div>
+            </div>
+
+            <!-- 靈活性遊戲卡片 -->
+            <div class="game-card bg-white p-4 rounded-lg shadow-md cursor-pointer"
+                 data-game-type="flexibility"
+                 role="button"
+                 tabindex="0"
+                 aria-label="靈活性訓練遊戲"
+                 onkeypress="if(event.key === 'Enter') this.click()">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 rounded-full bg-yellow-100 flex items-center justify-center mr-4">
+                        <i class="fas fa-random text-yellow-500 text-2xl" aria-hidden="true"></i>
                     </div>
-                    <div class="px-4 pb-4">
-                        <button class="game-detail-btn w-full bg-gray-100 py-2 rounded-lg text-gray-700 font-medium"
-                                data-game="switch-challenge">
-                            查看詳情
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- 遊戲 4 -->
-                <div class="game-card bg-white">
-                    <div class="flex p-4">
-                        <div class="w-16 h-16 rounded-xl bg-gradient-to-r from-blue-400 to-indigo-500 flex items-center justify-center mr-4">
-                            <i class="fas fa-crosshairs text-white text-2xl"></i>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex justify-between">
-                                <h3 class="font-bold text-gray-800">目標追蹤</h3>
-                                <span class="difficulty-badge bg-blue-100 text-blue-800">中級</span>
-                            </div>
-                            <p class="text-sm text-gray-500 mt-1">跟蹤移動的目標對象</p>
-                            <div class="flex items-center mt-2">
-                                <i class="fas fa-star text-yellow-400 text-xs mr-1"></i>
-                                <span class="text-xs text-gray-500 mr-3">+3 星星</span>
-                                <i class="fas fa-clock text-gray-400 text-xs mr-1"></i>
-                                <span class="text-xs text-gray-500">6分鐘</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="px-4 pb-4">
-                        <button class="game-detail-btn w-full bg-gray-100 py-2 rounded-lg text-gray-700 font-medium"
-                                data-game="target-tracking">
-                            查看詳情
-                        </button>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800" data-i18n="flexibilityGame">靈活性訓練</h2>
+                        <p class="text-sm text-gray-600" data-i18n="flexibilityGameDesc">提升認知靈活性和適應能力</p>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- 遊戲詳情彈窗 -->
-    <div id="gameDetail" class="game-detail fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden">
-            <!-- 動態內容由JavaScript填充 -->
-        </div>
+    <!-- 遊戲容器 -->
+    <div id="game-container" role="application" aria-label="遊戲區域"></div>
+
+    <!-- 遊戲控制按鈕 -->
+    <div class="game-controls" role="toolbar" aria-label="遊戲控制">
+        <button class="game-control-btn" id="pauseBtn" aria-label="暫停遊戲">
+            <i class="fas fa-pause" aria-hidden="true"></i>
+        </button>
+        <button class="game-control-btn" id="soundBtn" aria-label="切換音效">
+            <i class="fas fa-volume-up" aria-hidden="true"></i>
+        </button>
+        <button class="game-control-btn" id="fullscreenBtn" aria-label="切換全螢幕">
+            <i class="fas fa-expand" aria-hidden="true"></i>
+        </button>
     </div>
 
     <!-- 底部導航 -->
-    <div id="footer-container"></div>
+    <div id="footer-container" role="contentinfo"></div>
 
     <script src="js/footer.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // 遊戲詳情數據
-            const games = {
-                'focus-target': {
-                    title: '專注目標挑戰',
-                    category: 'attention',
-                    difficulty: '中等',
-                    duration: '7分鐘',
-                    rewards: '+5 星星',
-                    description: '在多個移動的目標中找出特定的圖案，訓練注意力的集中能力和視覺追蹤能力。這個遊戲有助於提升ADHD兒童的持續注意力。',
-                    instructions: [
-                        '觀察螢幕中移動的多個目標',
-                        '當目標圖案與指定圖案匹配時點擊',
-                        '隨著關卡提升，目標移動速度會加快',
-                        '連續正確可獲得額外分數'
-                    ],
-                    benefits: [
-                        '提升視覺注意力',
-                        '增強目標識別能力',
-                        '改善衝動控制',
-                        '提高反應準確性'
-                    ],
-                    color: 'from-blue-400 to-indigo-500'
-                },
-                'memory-master': {
-                    title: '記憶大師',
-                    category: 'memory',
-                    difficulty: '初級',
-                    duration: '5分鐘',
-                    rewards: '+2 星星',
-                    description: '記住螢幕上出現的圖案序列，然後按順序重現。這個遊戲訓練工作記憶能力，對ADHD兒童的短期記憶有顯著提升效果。',
-                    instructions: [
-                        '觀察螢幕上出現的圖案序列',
-                        '按相同順序點擊圖案',
-                        '序列長度會逐漸增加',
-                        '連續正確可獲得額外分數'
-                    ],
-                    benefits: [
-                        '增強短期記憶能力',
-                        '提高信息處理速度',
-                        '改善序列記憶',
-                        '提升注意力持久性'
-                    ],
-                    color: 'from-purple-400 to-indigo-500'
-                },
-                'quick-reaction': {
-                    title: '快速反應',
-                    category: 'reaction',
-                    difficulty: '初級',
-                    duration: '3分鐘',
-                    rewards: '+2 星星',
-                    description: '在正確的時間點擊目標，訓練反應速度和抑制控制能力。這個遊戲有助於減少ADHD兒童的衝動行為。',
-                    instructions: [
-                        '當目標出現時快速點擊',
-                        '避免點擊干擾物',
-                        '目標出現時間會越來越短',
-                        '連續正確可獲得額外分數'
-                    ],
-                    benefits: [
-                        '提高反應速度',
-                        '增強衝動控制',
-                        '改善手眼協調',
-                        '提升注意力分配'
-                    ],
-                    color: 'from-green-400 to-teal-500'
-                },
-                'switch-challenge': {
-                    title: '轉換挑戰',
-                    category: 'flexibility',
-                    difficulty: '高級',
-                    duration: '8分鐘',
-                    rewards: '+4 星星',
-                    description: '根據規則在任務間快速切換，訓練認知靈活性和任務轉換能力。這個遊戲特別針對ADHD兒童在任務轉換中的困難。',
-                    instructions: [
-                        '根據螢幕提示執行不同任務',
-                        '當規則改變時快速調整策略',
-                        '任務類型包括顏色、形狀、方向識別',
-                        '連續正確可獲得額外分數'
-                    ],
-                    benefits: [
-                        '提升認知靈活性',
-                        '增強任務轉換能力',
-                        '改善規則理解',
-                        '提高多任務處理'
-                    ],
-                    color: 'from-amber-400 to-orange-500'
-                },
-                'target-tracking': {
-                    title: '目標追蹤',
-                    category: 'attention',
-                    difficulty: '中級',
-                    duration: '6分鐘',
-                    rewards: '+3 星星',
-                    description: '在多個移動對象中持續追蹤特定目標，訓練持續注意力和視覺追蹤能力。這個遊戲有助於延長ADHD兒童的注意力持續時間。',
-                    instructions: [
-                        '選擇一個目標進行追蹤',
-                        '在目標移動過程中持續關注',
-                        '當目標停止時選擇正確位置',
-                        '隨著關卡提升，干擾物會增多'
-                    ],
-                    benefits: [
-                        '延長注意力持續時間',
-                        '增強視覺追蹤能力',
-                        '改善選擇性注意力',
-                        '提高目標維持能力'
-                    ],
-                    color: 'from-cyan-400 to-blue-500'
-                }
-            };
+        // 高對比度模式切換
+        document.getElementById('contrastToggle').addEventListener('click', function() {
+            document.body.classList.toggle('high-contrast');
+            const isHighContrast = document.body.classList.contains('high-contrast');
+            localStorage.setItem('highContrast', isHighContrast);
+            this.setAttribute('aria-pressed', isHighContrast);
+        });
 
-            // 分類按鈕交互
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
+        // 檢查並應用保存的高對比度設置
+        if (localStorage.getItem('highContrast') === 'true') {
+            document.body.classList.add('high-contrast');
+            document.getElementById('contrastToggle').setAttribute('aria-pressed', 'true');
+        }
+
+        // 遊戲分類切換
+        document.querySelectorAll('.category-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                // 更新按鈕狀態
+                document.querySelectorAll('.category-btn').forEach(btn => {
+                    btn.classList.remove('active', 'bg-primary', 'text-white');
+                    btn.classList.add('bg-gray-200', 'text-gray-700');
+                    btn.setAttribute('aria-selected', 'false');
                 });
-            });
+                this.classList.add('active', 'bg-primary', 'text-white');
+                this.classList.remove('bg-gray-200', 'text-gray-700');
+                this.setAttribute('aria-selected', 'true');
 
-            // 遊戲詳情按鈕交互
-            document.querySelectorAll('.game-detail-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const gameId = this.dataset.game;
-                    const game = games[gameId];
-                    
-                    if (game) {
-                        const detailElement = document.getElementById('gameDetail');
-                        const contentElement = detailElement.querySelector('.bg-white');
-                        
-                        // 構建詳情內容
-                        let content = `
-                            <div class="relative">
-                                <div class="h-40 bg-gradient-to-r ${game.color} flex items-center justify-center">
-                                    <div class="text-center">
-                                        <h3 class="text-white font-bold text-2xl">${game.title}</h3>
-                                        <p class="text-blue-100 mt-2">${game.difficulty} | ${game.duration} | ${game.rewards}</p>
-                                    </div>
-                                </div>
-                                <button class="close-detail absolute top-3 right-3 bg-white rounded-full w-8 h-8 flex items-center justify-center">
-                                    <i class="fas fa-times text-gray-600"></i>
-                                </button>
-                            </div>
-                            
-                            <div class="p-5">
-                                <h4 class="font-bold text-lg text-gray-800 mb-3">遊戲介紹</h4>
-                                <p class="text-gray-600 mb-5">${game.description}</p>
-                                
-                                <h4 class="font-bold text-lg text-gray-800 mb-3">遊戲規則</h4>
-                                <ul class="list-disc pl-5 text-gray-600 mb-5 space-y-2">
-                                    ${game.instructions.map(inst => `<li>${inst}</li>`).join('')}
-                                </ul>
-                                
-                                <h4 class="font-bold text-lg text-gray-800 mb-3">訓練益處</h4>
-                                <div class="flex flex-wrap gap-2 mb-6">
-                                    ${game.benefits.map(benefit => `
-                                        <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">${benefit}</span>
-                                    `).join('')}
-                                </div>
-                                
-                                <button class="game-start-btn w-full bg-gradient-to-r ${game.color} text-white py-3 rounded-xl font-bold shadow-md">
-                                    開始遊戲
-                                </button>
-                            </div>
-                        `;
-                        
-                        contentElement.innerHTML = content;
-                        detailElement.classList.add('active');
-                        
-                        // 關閉按鈕事件
-                        contentElement.querySelector('.close-detail').addEventListener('click', function() {
-                            detailElement.classList.remove('active');
-                        });
-                        
-                        // 開始遊戲按鈕事件
-                        contentElement.querySelector('.game-start-btn').addEventListener('click', function() {
-                            alert(`開始 ${game.title} 遊戲！`);
-                        });
-                    }
-                });
-            });
-
-            // 開始遊戲按鈕
-            document.querySelectorAll('.game-start-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const gameId = this.dataset.game;
-                    const game = games[gameId];
-                    if (game) {
-                        alert(`開始 ${game.title} 遊戲！`);
+                // 過濾遊戲卡片
+                const category = this.getAttribute('aria-controls');
+                document.querySelectorAll('.game-card').forEach(card => {
+                    if (category === 'all-games' || card.getAttribute('data-game-type') === category.split('-')[0]) {
+                        card.style.display = 'flex';
                     } else {
-                        alert('開始今日訓練！');
+                        card.style.display = 'none';
                     }
                 });
             });
+        });
 
-            // 點擊彈窗外部關閉
-            document.getElementById('gameDetail').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('active');
+        // 遊戲卡片點擊事件
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const gameType = this.getAttribute('data-game-type');
+                const gameContainer = document.getElementById('game-container');
+                gameContainer.style.display = 'block';
+                
+                // 初始化遊戲
+                const config = {
+                    type: Phaser.AUTO,
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    parent: 'game-container',
+                    scene: null
+                };
+
+                switch(gameType) {
+                    case 'focus':
+                        config.scene = FocusGameScene;
+                        break;
+                    case 'memory':
+                        config.scene = MemoryGameScene;
+                        break;
+                    case 'reaction':
+                        config.scene = ReactionGameScene;
+                        break;
+                    case 'flexibility':
+                        config.scene = FlexibilityGameScene;
+                        break;
                 }
+
+                const game = new Phaser.Game(config);
             });
+        });
+
+        // 遊戲控制按鈕事件
+        document.getElementById('pauseBtn').addEventListener('click', function() {
+            const game = window.game;
+            if (game) {
+                if (game.scene.isPaused()) {
+                    game.scene.resume();
+                    this.setAttribute('aria-label', '暫停遊戲');
+                    this.querySelector('i').className = 'fas fa-pause';
+                } else {
+                    game.scene.pause();
+                    this.setAttribute('aria-label', '繼續遊戲');
+                    this.querySelector('i').className = 'fas fa-play';
+                }
+            }
+        });
+
+        document.getElementById('soundBtn').addEventListener('click', function() {
+            const game = window.game;
+            if (game) {
+                const isMuted = game.sound.mute;
+                game.sound.mute = !isMuted;
+                this.setAttribute('aria-label', isMuted ? '開啟音效' : '關閉音效');
+                this.querySelector('i').className = isMuted ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+            }
+        });
+
+        document.getElementById('fullscreenBtn').addEventListener('click', function() {
+            const gameContainer = document.getElementById('game-container');
+            if (!document.fullscreenElement) {
+                gameContainer.requestFullscreen();
+                this.setAttribute('aria-label', '退出全螢幕');
+                this.querySelector('i').className = 'fas fa-compress';
+            } else {
+                document.exitFullscreen();
+                this.setAttribute('aria-label', '切換全螢幕');
+                this.querySelector('i').className = 'fas fa-expand';
+            }
+        });
+
+        // 鍵盤快捷鍵
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const gameContainer = document.getElementById('game-container');
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                    document.getElementById('fullscreenBtn').setAttribute('aria-label', '切換全螢幕');
+                    document.getElementById('fullscreenBtn').querySelector('i').className = 'fas fa-expand';
+                }
+            }
         });
     </script>
 </body>

@@ -8,8 +8,8 @@ class FocusGameScene extends Phaser.Scene {
 
     preload() {
         // Load game assets
-        this.load.image('target', 'assets/target.png');
-        this.load.image('background', 'assets/background.png');
+        this.load.image('target', 'assets/images/target.png');
+        this.load.image('background', 'assets/images/background.png');
     }
 
     create() {
