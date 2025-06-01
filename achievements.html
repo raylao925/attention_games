@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>成就系统 - 小星专注力</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#818CF8',
+                        accent: '#FBBF24',
+                        success: '#10B981',
+                        background: '#F9FAFB',
+                        attention: '#3B82F6',
+                        memory: '#8B5CF6',
+                        reaction: '#10B981',
+                        flexibility: '#F59E0B'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Nunito:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Nunito', 'Helvetica Neue', sans-serif;
+            background-color: #F9FAFB;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        .header-gradient {
+            background: linear-gradient(135deg, #4F46E5 0%, #818CF8 100%);
+        }
+        
+        .achievement-card {
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+            transition: all 0.3s ease;
+        }
+        
+        .achievement-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        
+        .badge-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+        
+        .locked-badge {
+            filter: grayscale(100%);
+            opacity: 0.6;
+        }
+        
+        .progress-ring {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+        
+        .progress-ring-circle {
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+        
+        .category-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .category-btn.active {
+            background: linear-gradient(135deg, #4F46E5 0%, #818CF8 100%);
+            color: white;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+        }
+        
+        .shine-effect {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .shine-effect::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 40%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(25deg);
+            transition: all 0.6s ease;
+        }
+        
+        .shine-effect:hover::after {
+            left: 120%;
+        }
+        
+        .achievement-popup {
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+            70% { transform: scale(1.02); box-shadow: 0 0 0 15px rgba(79, 70, 229, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .badge-glow {
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-background">
+    <!-- 顶部导航栏 -->
+    <header class="header-gradient text-white p-5 pt-6 pb-6">
+        <div class="flex items-center justify-between mb-4">
+            <a href="profile.html" class="p-2 rounded-full bg-white bg-opacity-20">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 class="text-xl font-bold">成就系统</h1>
+            <div class="p-2 rounded-full bg-white bg-opacity-20">
+                <i class="fas fa-search"></i>
+            </div>
+        </div>
+        
+        <!-- 星星统计 -->
+        <div class="flex items-center justify-center bg-white bg-opacity-20 p-4 rounded-xl mb-4">
+            <div class="flex items-center mr-6">
+                <i class="fas fa-star text-yellow-400 text-2xl mr-2"></i>
+                <div>
+                    <p class="text-xs opacity-80">我的星星</p>
+                    <p class="font-bold text-lg">256</p>
+                </div>
+            </div>
+            <div class="h-10 w-px bg-white bg-opacity-30"></div>
+            <div class="flex items-center ml-6">
+                <i class="fas fa-medal text-amber-400 text-2xl mr-2"></i>
+                <div>
+                    <p class="text-xs opacity-80">成就点数</p>
+                    <p class="font-bold text-lg">780</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 成就进度 -->
+        <div class="bg-white bg-opacity-20 p-4 rounded-xl">
+            <div class="flex justify-between text-sm mb-2">
+                <span>成就进度</span>
+                <span>15/28</span>
+            </div>
+            <div class="w-full bg-white bg-opacity-30 rounded-full h-3">
+                <div class="bg-gradient-to-r from-yellow-400 to-amber-500 h-3 rounded-full" style="width: 54%"></div>
+            </div>
+            <p class="text-xs mt-2 text-center opacity-90">完成所有成就可获得特别奖励!</p>
+        </div>
+    </header>
+
+    <!-- 主要内容区域 -->
+    <main class="px-5 py-4">
+        <!-- 分类标签 -->
+        <div class="flex overflow-x-auto pb-4 space-x-3 mb-6">
+            <button class="category-btn active" data-category="all">
+                <i class="fas fa-star mr-2"></i>全部成就
+            </button>
+            <button class="category-btn" data-category="attention" style="background-color: #DBEAFE; color: #1D4ED8;">
+                <i class="fas fa-bullseye mr-2"></i>注意力
+            </button>
+            <button class="category-btn" data-category="memory" style="background-color: #EDE9FE; color: #5B21B6;">
+                <i class="fas fa-brain mr-2"></i>记忆力
+            </button>
+            <button class="category-btn" data-category="reaction" style="background-color: #D1FAE5; color: #047857;">
+                <i class="fas fa-bolt mr-2"></i>反应力
+            </button>
+            <button class="category-btn" data-category="flexibility" style="background-color: #FEF3C7; color: #B45309;">
+                <i class="fas fa-random mr-2"></i>灵活性
+            </button>
+            <button class="category-btn" data-category="special" style="background-color: #FCE7F3; color: #BE185D;">
+                <i class="fas fa-crown mr-2"></i>特别成就
+            </button>
+        </div>
+        
+        <!-- 成就列表 -->
+        <div class="grid grid-cols-2 gap-4">
+            <!-- 成就 1 -->
+            <div class="achievement-card shine-effect bg-white" data-id="focus-master">
+                <div class="p-4">
+                    <div class="badge-icon bg-blue-100 text-blue-600 mb-3">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-800 text-center mb-1">专注大师</h3>
+                    <p class="text-xs text-gray-500 text-center">完成30次专注力训练</p>
+                </div>
+                <div class="bg-blue-50 p-2">
+                    <div class="flex items-center justify-center">
+                        <div class="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center mr-2">
+                            <i class="fas fa-check text-blue-700 text-sm"></i>
+                        </div>
+                        <span class="text-xs text-blue-700 font-medium">已获得</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 成就 2 -->
+            <div class="achievement-card shine-effect bg-white" data-id="memory-champion">
+                <div class="p-4">
+                    <div class="badge-icon bg-purple-100 text-purple-600 mb-3">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-800 text-center mb-1">记忆冠军</h3>
+                    <p class="text-xs text-gray-500 text-center">记忆游戏连续通关10次</p>
+                </div>
+                <div class="bg-purple-50 p-2">
+                    <div class="flex items-center justify-center">
+                        <div class="w-8 h-8 bg-purple-200 rounded-full flex items-center justify-center mr-2">
+                            <i class="fas fa-check text-purple-700 text-sm"></i>
+                        </div>
+                        <span class="text-xs text-purple-700 font-medium">已获得</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 成就 3 -->
+            <div class="achievement-card shine-effect bg-white" data-id="quick-reflex">
+                <div class="p-4">
+                    <div class="badge-icon bg-green-100 text-green-600 mb-3">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-800 text-center mb-1">快速反应</h3>
+                    <p class="text-xs text-gray-500 text-center">反应时间低于0.5秒</p>
+                </div>
+                <div class="bg-green-50 p-2">
+                    <div class="flex items-center justify-center">
+                        <div class="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center mr-2">
+                            <i class="fas fa-check text-green-700 text-sm"></i>
+                        </div>
+                        <span class="text-xs text-green-700 font-medium">已获得</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 成就 4 -->
+            <div class="achievement-card bg-white" data-id="flexibility-expert">
+                <div class="p-4">
+                    <div class="badge-icon locked-badge bg-amber-100 text-amber-600 mb-3">
+                        <i class="fas fa-random"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-800 text-center mb-1">转换专家</h3>
+                    <p class="text-xs text-gray-500 text-center">完成20次灵活性训练</p>
+                </div>
+                <div class="bg-amber-50 p-2">
+                    <div class="flex items-center justify-center">
+                        <div class="progress-ring mr-2">
+                            <svg width="100" height="100">
+                                <circle class="progress-ring-circle" 
+                                        stroke="#FCD34D" 
+                                        stroke-width="6" 
+                                        fill="transparent" 
+                                        r="40" 
+                                        cx="50" 
+                                        cy="50"
+                                        stroke-dasharray="251.2"
+                                        stroke-dashoffset="175.84"></circle>
+                            </svg>
+                        </div>
+                        <span class="text-xs text-amber-700 font-medium">70%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 成就 5 -->
+            <div class="achievement-card bg-white" data-id="streak-master">
+                <div class="p-4">
+                    <div class="badge-icon locked-badge bg-red-100 text-red-600 mb-3">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-800 text-center mb-1">坚持之星</h3>
+                    <p class="text-xs text-gray-500 text-center">连续训练30天</p>
+                </div>
+                <div class="bg-red-50 p-2">
+                    <div class="flex items-center justify-center">
+                        <div class="progress-ring mr-2">
+                            <svg width="100" height="100">
+                                <circle class="progress-ring-circle" 
+                                        stroke="#FECACA" 
+                                        stroke-width="6" 
+                                        fill="transparent" 
+                                        r="40" 
+                                        cx="50" 
+                                        cy="50"
+                                        stroke-dasharray="251.2"
+                                        stroke-dashoffset="200.96"></circle>
+                            </svg>
+                        </div>
+                        <span class="text-xs text-red-700 font-medium">20%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 成就 6 -->
+            <div class="achievement-card shine-effect bg-white" data-id="star-collector">
+                <div class="p-4">
+                    <div class="badge-icon bg-yellow-100 text-yellow-600 mb-3 pulse">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-800 text-center mb-1">星星收藏家</h3>
+                    <p class="text-xs text-gray-500 text-center">收集200颗星星</p>
+                </div>
+                <div class="bg-yellow-50 p-2">
+                    <div class="flex items-center justify-center">
+                        <div class="w-8 h-8 bg-yellow-200 rounded-full flex items-center justify-center mr-2">
+                            <i class="fas fa-check text-yellow-700 text-sm"></i>
+                        </div>
+                        <span class="text-xs text-yellow-700 font-medium">已获得</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 特别成就 -->
+        <div class="mt-8">
+            <h2 class="font-bold text-xl text-gray-800 mb-4">特别成就</h2>
+            
+            <div class="achievement-card bg-gradient-to-r from-purple-500 to-indigo-600 text-white">
+                <div class="p-5">
+                    <div class="flex flex-col items-center">
+                        <div class="badge-icon bg-white text-purple-600 mb-4 badge-glow">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <h3 class="font-bold text-2xl text-center mb-2">超级训练师</h3>
+                        <p class="text-center opacity-90 mb-4">完成所有基础成就</p>
+                        
+                        <div class="w-full bg-white bg-opacity-20 rounded-full h-2 mb-4">
+                            <div class="bg-gradient-to-r from-yellow-400 to-amber-500 h-2 rounded-full" style="width: 54%"></div>
+                        </div>
+                        
+                        <p class="text-xs text-center opacity-80">解锁此成就可获得专属角色和特效</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 最近获得 -->
+        <div class="mt-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-bold text-xl text-gray-800">最近获得</h2>
+                <a href="#" class="text-primary text-sm font-medium">查看历史</a>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-4">
+                <div class="flex items-center mb-4">
+                    <div class="badge-icon bg-blue-100 text-blue-600 mr-4">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-800">专注目标大师</h3>
+                        <p class="text-sm text-gray-600">在专注目标游戏中获得满分</p>
+                        <p class="text-xs text-gray-400 mt-1">2023年11月5日</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center mb-4">
+                    <div class="badge-icon bg-green-100 text-green-600 mr-4">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-800">闪电反应</h3>
+                        <p class="text-sm text-gray-600">平均反应时间低于0.4秒</p>
+                        <p class="text-xs text-gray-400 mt-1">2023年11月3日</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <div class="badge-icon bg-amber-100 text-amber-600 mr-4">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-800">七日坚持</h3>
+                        <p class="text-sm text-gray-600">连续7天完成训练计划</p>
+                        <p class="text-xs text-gray-400 mt-1">2023年11月1日</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 成就详情弹窗 -->
+    <div id="achievementDetail" class="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden achievement-popup">
+            <!-- 动态内容由JavaScript填充 -->
+        </div>
+    </div>
+
+    <!-- 底部导航 -->
+    <nav class="bg-white border-t border-gray-200 py-3 px-8 flex justify-around">
+        <a href="index.html" class="text-gray-500 flex flex-col items-center">
+            <i class="fas fa-home text-lg"></i>
+            <span class="text-xs mt-1">首页</span>
+        </a>
+        <a href="plan.html" class="text-gray-500 flex flex-col items-center">
+            <i class="fas fa-calendar-alt text-lg"></i>
+            <span class="text-xs mt-1">计划</span>
+        </a>
+        <a href="games.html" class="text-gray-500 flex flex-col items-center">
+            <i class="fas fa-gamepad text-lg"></i>
+            <span class="text-xs mt-1">游戏</span>
+        </a>
+        <a href="parent.html" class="text-gray-500 flex flex-col items-center">
+            <i class="fas fa-user-friends text-lg"></i>
+            <span class="text-xs mt-1">家长</span>
+        </a>
+        <a href="profile.html" class="text-primary flex flex-col items-center">
+            <i class="fas fa-user text-lg"></i>
+            <span class="text-xs mt-1">我的</span>
+        </a>
+    </nav>
+
+    <script>
+        // 成就数据
+        const achievements = {
+            'focus-master': {
+                title: '专注大师',
+                description: '完成30次专注力训练，证明你拥有超强的注意力持久性！',
+                category: 'attention',
+                icon: 'fas fa-bullseye',
+                color: 'bg-blue-100 text-blue-600',
+                status: '已获得',
+                date: '2023年10月28日',
+                progress: 100,
+                rewards: [
+                    {icon: 'fas fa-star', text: '+50 星星'},
+                    {icon: 'fas fa-medal', text: '专属成就徽章'},
+                    {icon: 'fas fa-trophy', text: '专注大师称号'}
+                ],
+                tips: '继续挑战更高难度的专注力游戏，提升你的注意力控制能力！'
+            },
+            'memory-champion': {
+                title: '记忆冠军',
+                description: '在记忆游戏中连续10次获得满分，展现你惊人的记忆力！',
+                category: 'memory',
+                icon: 'fas fa-brain',
+                color: 'bg-purple-100 text-purple-600',
+                status: '已获得',
+                date: '2023年11月2日',
+                progress: 100,
+                rewards: [
+                    {icon: 'fas fa-star', text: '+30 星星'},
+                    {icon: 'fas fa-tshirt', text: '记忆大师服装'}
+                ],
+                tips: '尝试挑战更长的记忆序列，继续锻炼你的工作记忆能力！'
+            },
+            'quick-reflex': {
+                title: '快速反应',
+                description: '平均反应时间低于0.5秒，证明你拥有闪电般的反应速度！',
+                category: 'reaction',
+                icon: 'fas fa-bolt',
+                color: 'bg-green-100 text-green-600',
+                status: '已获得',
+                date: '2023年11月5日',
+                progress: 100,
+                rewards: [
+                    {icon: 'fas fa-star', text: '+40 星星'},
+                    {icon: 'fas fa-bolt', text: '闪电反应特效'}
+                ],
+                tips: '保持练习，挑战更复杂的反应游戏，提升你的反应抑制能力！'
+            },
+            'flexibility-expert': {
+                title: '转换专家',
+                description: '完成20次认知灵活性训练，展现你优秀的任务转换能力！',
+                category: 'flexibility',
+                icon: 'fas fa-random',
+                color: 'bg-amber-100 text-amber-600',
+                status: '进行中',
+                date: '',
+                progress: 70,
+                rewards: [
+                    {icon: 'fas fa-star', text: '+60 星星'},
+                    {icon: 'fas fa-hat-wizard', text: '转换专家帽子'}
+                ],
+                tips: '每天完成灵活性训练，你离成为转换专家只差6次训练了！'
+            },
+            'streak-master': {
+                title: '坚持之星',
+                description: '连续30天完成训练计划，证明你拥有惊人的毅力和坚持！',
+                category: 'special',
+                icon: 'fas fa-fire',
+                color: 'bg-red-100 text-red-600',
+                status: '进行中',
+                date: '',
+                progress: 20,
+                rewards: [
+                    {icon: 'fas fa-star', text: '+100 星星'},
+                    {icon: 'fas fa-gem', text: '专属宝石特效'},
+                    {icon: 'fas fa-crown', text: '坚持之星称号'}
+                ],
+                tips: '保持每日训练习惯，你已经在连续训练的道路上坚持了7天！'
+            },
+            'star-collector': {
+                title: '星星收藏家',
+                description: '收集超过200颗星星，你是一位真正的星星收藏大师！',
+                category: 'special',
+                icon: 'fas fa-star',
+                color: 'bg-yellow-100 text-yellow-600',
+                status: '已获得',
+                date: '2023年11月6日',
+                progress: 100,
+                rewards: [
+                    {icon: 'fas fa-medal', text: '星星收藏家徽章'},
+                    {icon: 'fas fa-coins', text: '双倍星星奖励特权'}
+                ],
+                tips: '继续收集星星，解锁更多角色和装扮，成为星星收藏传奇！'
+            }
+        };
+
+        // 成就卡片点击事件
+        document.querySelectorAll('.achievement-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const achievementId = this.dataset.id;
+                const achievement = achievements[achievementId];
+                
+                if (achievement) {
+                    const detailElement = document.getElementById('achievementDetail');
+                    const contentElement = detailElement.querySelector('.bg-white');
+                    
+                    // 构建详情内容
+                    let rewardsHtml = '';
+                    achievement.rewards.forEach(reward => {
+                        rewardsHtml += `
+                            <div class="flex items-center mb-2">
+                                <div class="w-8 h-8 rounded-full bg-white bg-opacity-20 flex items-center justify-center mr-3">
+                                    <i class="${reward.icon}"></i>
+                                </div>
+                                <span class="font-medium">${reward.text}</span>
+                            </div>
+                        `;
+                    });
+                    
+                    let progressHtml = '';
+                    if (achievement.progress < 100) {
+                        progressHtml = `
+                            <div class="mt-4">
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>完成进度</span>
+                                    <span>${achievement.progress}%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-gradient-to-r from-amber-400 to-amber-500 h-2 rounded-full" style="width: ${achievement.progress}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    let dateHtml = achievement.date ? `<p class="text-sm text-gray-500 mt-1"><i class="fas fa-calendar-alt mr-2"></i>获得时间: ${achievement.date}</p>` : '';
+                    
+                    let statusBadge = achievement.status === '已获得' ? 
+                        '<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium"><i class="fas fa-check-circle mr-1"></i>已获得</span>' :
+                        '<span class="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-medium"><i class="fas fa-spinner mr-1"></i>进行中</span>';
+                    
+                    contentElement.innerHTML = `
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <div class="badge-icon ${achievement.color} mb-4">
+                                        <i class="${achievement.icon}"></i>
+                                    </div>
+                                    <h2 class="font-bold text-2xl text-gray-800">${achievement.title}</h2>
+                                    <p class="text-gray-600 mt-2">${achievement.description}</p>
+                                    ${dateHtml}
+                                </div>
+                                <button class="close-detail w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                                    <i class="fas fa-times text-gray-600"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="bg-gray-100 p-4 rounded-xl mt-4">
+                                <h3 class="font-bold text-gray-800 mb-3">成就奖励</h3>
+                                ${rewardsHtml}
+                            </div>
+                            
+                            ${progressHtml}
+                            
+                            <div class="mt-6 bg-blue-50 p-4 rounded-xl">
+                                <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-lightbulb text-blue-500 mr-2"></i>训练建议</h3>
+                                <p class="text-gray-700">${achievement.tips}</p>
+                            </div>
+                            
+                            <div class="mt-6 text-center">
+                                ${statusBadge}
+                            </div>
+                        </div>
+                    `;
+                    
+                    detailElement.classList.remove('hidden');
+                    
+                    // 关闭按钮事件
+                    contentElement.querySelector('.close-detail').addEventListener('click', function() {
+                        detailElement.classList.add('hidden');
+                    });
+                }
+            });
+        });
+
+        // 点击弹窗外部关闭
+        document.getElementById('achievementDetail').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+            }
+        });
+
+        // 分类按钮交互
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const category = this.dataset.category;
+                // 这里在实际应用中会过滤显示对应分类的成就
+                alert(`显示${this.textContent}`);
+            });
+        });
+
+        // 初始化进度环
+        document.querySelectorAll('.progress-ring circle').forEach(circle => {
+            const radius = circle.r.baseVal.value;
+            const circumference = radius * 2 * Math.PI;
+            
+            circle.style.strokeDasharray = `${circumference} ${circumference}`;
+            circle.style.strokeDashoffset = circumference;
+            
+            const offset = circumference - (circle.dataset.progress || 70) / 100 * circumference;
+            setTimeout(() => {
+                circle.style.strokeDashoffset = offset;
+            }, 500);
+        });
+    </script>
+</body>
+</html>

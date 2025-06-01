@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>训练计划 - 小星专注力</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#818CF8',
+                        accent: '#FBBF24',
+                        success: '#10B981',
+                        background: '#F9FAFB',
+                        attention: '#3B82F6',
+                        memory: '#8B5CF6',
+                        reaction: '#10B981',
+                        flexibility: '#F59E0B'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Nunito:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Nunito', 'Helvetica Neue', sans-serif;
+            background-color: #F9FAFB;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        .header-gradient {
+            background: linear-gradient(135deg, #4F46E5 0%, #818CF8 100%);
+        }
+        
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: #E5E7EB;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #FBBF24 0%, #F59E0B 100%);
+            transition: width 0.5s ease;
+        }
+        
+        .calendar-day {
+            width: 14.28%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 0;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .calendar-day.active {
+            background: rgba(79, 70, 229, 0.1);
+            color: #4F46E5;
+            font-weight: bold;
+        }
+        
+        .calendar-day.completed {
+            position: relative;
+        }
+        
+        .calendar-day.completed::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            width: 6px;
+            height: 6px;
+            background-color: #10B981;
+            border-radius: 50%;
+        }
+        
+        .task-card {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .task-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+        }
+        
+        .task-completed {
+            background: #F0FDF4;
+            border-left: 4px solid #10B981;
+        }
+        
+        .stat-card {
+            border-radius: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+        }
+        
+        .tab-button {
+            padding: 10px 0;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-button.active {
+            border-bottom: 3px solid #4F46E5;
+            color: #4F46E5;
+            font-weight: bold;
+        }
+        
+        .streak-fire {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.4s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-background">
+    <!-- 顶部导航栏 -->
+    <header class="header-gradient text-white p-5 pt-6 pb-6">
+        <div class="flex items-center justify-between mb-4">
+            <a href="index.html" class="p-2 rounded-full bg-white bg-opacity-20">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 class="text-xl font-bold">训练计划</h1>
+            <div class="p-2 rounded-full bg-white bg-opacity-20">
+                <i class="fas fa-chart-line"></i>
+            </div>
+        </div>
+        
+        <!-- 日期选择 -->
+        <div class="flex justify-between items-center mb-4">
+            <button class="p-2 rounded-full bg-white bg-opacity-20">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <h2 class="font-bold text-lg">2023年11月</h2>
+            <button class="p-2 rounded-full bg-white bg-opacity-20">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+        
+        <!-- 日历 -->
+        <div class="bg-white bg-opacity-20 rounded-xl p-3 mb-2">
+            <div class="grid grid-cols-7 text-center text-sm mb-2">
+                <div>日</div>
+                <div>一</div>
+                <div>二</div>
+                <div>三</div>
+                <div>四</div>
+                <div>五</div>
+                <div>六</div>
+            </div>
+            <div class="grid grid-cols-7 text-center">
+                <div class="calendar-day opacity-40">29</div>
+                <div class="calendar-day opacity-40">30</div>
+                <div class="calendar-day opacity-40">31</div>
+                <div class="calendar-day">1</div>
+                <div class="calendar-day completed">2</div>
+                <div class="calendar-day completed">3</div>
+                <div class="calendar-day completed">4</div>
+                <div class="calendar-day completed">5</div>
+                <div class="calendar-day completed">6</div>
+                <div class="calendar-day completed">7</div>
+                <div class="calendar-day active">8</div>
+                <div class="calendar-day">9</div>
+                <div class="calendar-day">10</div>
+                <div class="calendar-day">11</div>
+                <div class="calendar-day">12</div>
+                <div class="calendar-day">13</div>
+                <div class="calendar-day">14</div>
+                <div class="calendar-day">15</div>
+                <div class="calendar-day">16</div>
+                <div class="calendar-day">17</div>
+                <div class="calendar-day">18</div>
+                <div class="calendar-day">19</div>
+                <div class="calendar-day">20</div>
+                <div class="calendar-day">21</div>
+                <div class="calendar-day">22</div>
+                <div class="calendar-day">23</div>
+                <div class="calendar-day">24</div>
+                <div class="calendar-day">25</div>
+                <div class="calendar-day">26</div>
+                <div class="calendar-day">27</div>
+                <div class="calendar-day">28</div>
+                <div class="calendar-day">29</div>
+                <div class="calendar-day opacity-40">1</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容区域 -->
+    <main class="px-5 py-4">
+        <!-- 统计卡片 -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="stat-card bg-white p-4">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-gray-500 text-sm">连续训练</h3>
+                        <p class="text-2xl font-bold mt-1">7<span class="text-lg">天</span></p>
+                    </div>
+                    <div class="text-yellow-500">
+                        <i class="fas fa-fire text-xl streak-fire"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">保持训练获得更多奖励</p>
+            </div>
+            
+            <div class="stat-card bg-white p-4">
+                <div>
+                    <h3 class="text-gray-500 text-sm">本月完成率</h3>
+                    <p class="text-2xl font-bold mt-1">86<span class="text-lg">%</span></p>
+                </div>
+                <div class="progress-bar mt-2">
+                    <div class="progress-fill" style="width: 86%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 标签切换 -->
+        <div class="flex justify-around bg-gray-100 rounded-xl p-1 mb-6">
+            <button class="tab-button active w-1/2 text-center" data-tab="daily">每日计划</button>
+            <button class="tab-button w-1/2 text-center" data-tab="weekly">每周计划</button>
+        </div>
+        
+        <!-- 每日计划内容 -->
+        <div id="dailyTab" class="tab-content active">
+            <!-- 日期标题 -->
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-bold text-lg text-gray-800">11月8日训练计划</h2>
+                <div class="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                    <i class="fas fa-check-circle mr-1"></i>进行中
+                </div>
+            </div>
+            
+            <!-- 任务列表 -->
+            <div class="space-y-4 mb-8">
+                <!-- 任务 1 -->
+                <div class="task-card task-completed bg-white">
+                    <div class="flex items-center p-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-400 to-indigo-500 flex items-center justify-center mr-4">
+                            <i class="fas fa-bullseye text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800">专注目标挑战</h3>
+                                <div class="text-green-500">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-1">注意力训练 - 中等难度</p>
+                        </div>
+                    </div>
+                    <div class="px-4 pb-4">
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span><i class="fas fa-clock mr-1"></i> 7分钟</span>
+                            <span><i class="fas fa-star text-yellow-400 mr-1"></i> +5</span>
+                            <span><i class="fas fa-check-circle mr-1"></i> 已完成</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 任务 2 -->
+                <div class="task-card bg-white">
+                    <div class="flex items-center p-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-400 to-indigo-500 flex items-center justify-center mr-4">
+                            <i class="fas fa-brain text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800">记忆大师</h3>
+                                <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                                    <div class="w-3 h-3 rounded-full bg-gray-300"></div>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-1">记忆力训练 - 初级难度</p>
+                        </div>
+                    </div>
+                    <div class="px-4 pb-4">
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span><i class="fas fa-clock mr-1"></i> 5分钟</span>
+                            <span><i class="fas fa-star text-yellow-400 mr-1"></i> +2</span>
+                            <span class="text-blue-500"><i class="fas fa-play-circle mr-1"></i> 开始训练</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 任务 3 -->
+                <div class="task-card bg-white">
+                    <div class="flex items-center p-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-r from-green-400 to-teal-500 flex items-center justify-center mr-4">
+                            <i class="fas fa-bolt text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800">快速反应</h3>
+                                <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                                    <div class="w-3 h-3 rounded-full bg-gray-300"></div>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-1">反应力训练 - 初级难度</p>
+                        </div>
+                    </div>
+                    <div class="px-4 pb-4">
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span><i class="fas fa-clock mr-1"></i> 3分钟</span>
+                            <span><i class="fas fa-star text-yellow-400 mr-1"></i> +2</span>
+                            <span class="text-blue-500"><i class="fas fa-play-circle mr-1"></i> 开始训练</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 完成奖励 -->
+            <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-100 rounded-2xl p-4 mb-8">
+                <div class="flex items-center">
+                    <div class="bg-amber-100 p-3 rounded-full mr-3">
+                        <i class="fas fa-gift text-amber-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-800">完成今日任务奖励</h3>
+                        <p class="text-sm text-gray-600">获得 <span class="font-bold text-amber-600">5</span> 颗额外星星 + <span class="font-bold text-amber-600">7</span> 天连续训练徽章</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 每周计划内容 -->
+        <div id="weeklyTab" class="tab-content">
+            <h2 class="font-bold text-lg text-gray-800 mb-4">本周训练计划</h2>
+            
+            <!-- 周进度 -->
+            <div class="bg-white rounded-2xl p-4 mb-6">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-medium text-gray-700">周进度</h3>
+                    <span class="font-bold text-gray-800">3/7 天</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 43%"></div>
+                </div>
+            </div>
+            
+            <!-- 每日训练目标 -->
+            <div class="bg-white rounded-2xl p-4 mb-6">
+                <h3 class="font-medium text-gray-700 mb-3">每日训练目标</h3>
+                <div class="grid grid-cols-4 gap-3">
+                    <div class="bg-blue-50 p-3 rounded-xl text-center">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-bullseye text-blue-600"></i>
+                        </div>
+                        <span class="text-xs font-medium">注意力</span>
+                    </div>
+                    <div class="bg-purple-50 p-3 rounded-xl text-center">
+                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-brain text-purple-600"></i>
+                        </div>
+                        <span class="text-xs font-medium">记忆力</span>
+                    </div>
+                    <div class="bg-green-50 p-3 rounded-xl text-center">
+                        <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-bolt text-green-600"></i>
+                        </div>
+                        <span class="text-xs font-medium">反应力</span>
+                    </div>
+                    <div class="bg-amber-50 p-3 rounded-xl text-center">
+                        <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-random text-amber-600"></i>
+                        </div>
+                        <span class="text-xs font-medium">灵活性</span>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-600 mt-3">
+                    <i class="fas fa-info-circle text-blue-500 mr-1"></i> 
+                    每天至少完成2种类型的训练，全面锻炼认知能力
+                </p>
+            </div>
+            
+            <!-- 本周任务分布 -->
+            <div class="bg-white rounded-2xl p-4">
+                <h3 class="font-medium text-gray-700 mb-3">本周任务分布</h3>
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="font-medium">注意力训练</span>
+                            <span>4/5</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 80%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="font-medium">记忆力训练</span>
+                            <span>3/5</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 60%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="font-medium">反应力训练</span>
+                            <span>2/5</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 40%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="font-medium">灵活性训练</span>
+                            <span>1/3</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 33%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 历史记录 -->
+        <div class="mt-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-bold text-lg text-gray-800">历史训练记录</h2>
+                <a href="#" class="text-primary text-sm font-medium">查看全部</a>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-4">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="bg-gray-100 p-2 rounded-lg mr-3">
+                            <i class="fas fa-calendar-day text-gray-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-gray-800">11月7日</h3>
+                            <p class="text-xs text-gray-500">周二 下午 15:30</p>
+                        </div>
+                    </div>
+                    <div class="text-green-500 font-bold">
+                        <i class="fas fa-check-circle mr-1"></i> 完成
+                    </div>
+                </div>
+                
+                <div class="flex justify-around text-center">
+                    <div>
+                        <div class="text-2xl font-bold text-blue-500">25<span class="text-sm">分</span></div>
+                        <p class="text-xs text-gray-500">训练时长</p>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-purple-500">3</div>
+                        <p class="text-xs text-gray-500">完成游戏</p>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-amber-500">9</div>
+                        <p class="text-xs text-gray-500">获得星星</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 底部导航 -->
+    <nav class="bg-white border-t border-gray-200 py-3 px-8 flex justify-around">
+        <a href="index.html" class="text-gray-500 flex flex-col items-center">
+            <i class="fas fa-home text-lg"></i>
+            <span class="text-xs mt-1">首页</span>
+        </a>
+        <a href="plan.html" class="text-primary flex flex-col items-center">
+            <i class="fas fa-calendar-alt text-lg"></i>
+            <span class="text-xs mt-1">计划</span>
+        </a>
+        <a href="games.html" class="text-gray-500 flex flex-col items-center">
+            <i class="fas fa-gamepad text-lg"></i>
+            <span class="text-xs mt-1">游戏</span>
+        </a>
+        <a href="parent.html" class="text-gray-500 flex flex-col items-center">
+            <i class="fas fa-user-friends text-lg"></i>
+            <span class="text-xs mt-1">家长</span>
+        </a>
+        <a href="profile.html" class="text-gray-500 flex flex-col items-center">
+            <i class="fas fa-user text-lg"></i>
+            <span class="text-xs mt-1">我的</span>
+        </a>
+    </nav>
+
+    <script>
+        // 标签切换功能
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.dataset.tab;
+                
+                // 更新按钮状态
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // 更新内容显示
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === `${tabId}Tab`) {
+                        content.classList.add('active');
+                        content.classList.add('slide-in');
+                    }
+                });
+            });
+        });
+        
+        // 任务卡片交互
+        const taskCards = document.querySelectorAll('.task-card:not(.task-completed)');
+        taskCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const startBtn = this.querySelector('.text-blue-500');
+                if (startBtn) {
+                    startBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> 准备中...';
+                    setTimeout(() => {
+                        alert('开始记忆大师训练！');
+                    }, 800);
+                }
+            });
+        });
+        
+        // 日历交互
+        const calendarDays = document.querySelectorAll('.calendar-day:not(.opacity-40)');
+        calendarDays.forEach(day => {
+            day.addEventListener('click', function() {
+                document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 模拟加载该日期的计划
+                document.querySelector('.text-lg').textContent = `11月${this.textContent}日训练计划`;
+            });
+        });
+    </script>
+</body>
+</html>

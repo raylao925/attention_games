@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>家长监控 - 小星专注力</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#818CF8',
+                        accent: '#FBBF24',
+                        success: '#10B981',
+                        background: '#F9FAFB',
+                        attention: '#3B82F6',
+                        memory: '#8B5CF6',
+                        reaction: '#10B981',
+                        flexibility: '#F59E0B'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Nunito', 'Helvetica Neue', sans-serif;
+            background-color: #F9FAFB;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        .header-gradient {
+            background: linear-gradient(135deg, #4F46E5 0%, #818CF8 100%);
+        }
+        
+        .card {
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        
+        .tab-button {
+            padding: 12px 0;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .tab-button.active {
+            border-bottom: 3px solid #4F46E5;
+            color: #4F46E5;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: #E5E7EB;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .stat-badge {
+            border-radius: 12px;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+        }
+        
+        .chart-bar {
+            width: 30px;
+            border-radius: 6px 6px 0 0;
+            transition: height 0.8s ease;
+        }
+        
+        .trend-up {
+            animation: trendUp 1s ease;
+        }
+        
+        @keyframes trendUp {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .child-selector {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .child-selector.active {
+            background: rgba(79, 70, 229, 0.1);
+            border: 1px solid #818CF8;
+        }
+        
+        .notification-item {
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .notification-item.unread {
+            border-left: 4px solid #4F46E5;
+            background: rgba(79, 70, 229, 0.03);
+        }
+        
+        .notification-item:hover {
+            background: rgba(79, 70, 229, 0.05);
+        }
+        
+        .insight-card {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 16px;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-background">
+    <!-- 顶部导航栏 -->
+    <header class="header-gradient text-white p-5 pt-6 pb-6">
+        <div class="flex items-center justify-between mb-4">
+            <a href="index.html" class="p-2 rounded-full bg-white bg-opacity-20">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 class="text-xl font-bold">家长监控</h1>
+            <div class="flex items-center">
+                <button class="p-2 rounded-full bg-white bg-opacity-20 mr-2">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button class="p-2 rounded-full bg-white bg-opacity-20">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 孩子选择器 -->
+        <div class="flex overflow-x-auto pb-2 space-x-3 -mx-1 px-1">
+            <div class="child-selector active">
+                <div class="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10 mr-3"></div>
+                <div>
+                    <h3 class="font-bold">小明</h3>
+                    <p class="text-xs opacity-80">7岁 · 男孩</p>
+                </div>
+            </div>
+            
+            <div class="child-selector">
+                <div class="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10 mr-3"></div>
+                <div>
+                    <h3 class="font-bold">小美</h3>
+                    <p class="text-xs opacity-80">5岁 · 女孩</p>
+                </div>
+            </div>
+            
+            <div class="child-selector flex items-center justify-center p-3">
+                <i class="fas fa-plus text-lg"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容区域 -->
+    <main class="px-5 py-4">
+        <!-- 标签切换 -->
+        <div class="flex justify-around bg-gray-100 rounded-xl p-1 mb-6">
+            <button class="tab-button active w-1/3 text-center" data-tab="overview">数据概览</button>
+            <button class="tab-button w-1/3 text-center" data-tab="progress">能力进展</button>
+            <button class="tab-button w-1/3 text-center" data-tab="notifications">消息通知</button>
+        </div>
+        
+        <!-- 数据概览 -->
+        <div id="overviewTab" class="tab-content active">
+            <!-- 数据卡片 -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="card bg-white p-4">
+                    <div class="flex items-center">
+                        <div class="bg-blue-100 p-3 rounded-full mr-3">
+                            <i class="fas fa-clock text-blue-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-gray-500 text-sm">总训练时长</h3>
+                            <p class="text-xl font-bold">12.5<span class="text-base">小时</span></p>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="flex justify-between text-xs text-gray-500 mb-1">
+                            <span>本周</span>
+                            <span>3.2小时</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-blue-500" style="width: 78%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-white p-4">
+                    <div class="flex items-center">
+                        <div class="bg-purple-100 p-3 rounded-full mr-3">
+                            <i class="fas fa-gamepad text-purple-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-gray-500 text-sm">完成游戏数</h3>
+                            <p class="text-xl font-bold">87</p>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="flex justify-between text-xs text-gray-500 mb-1">
+                            <span>本周</span>
+                            <span>15个</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-purple-500" style="width: 65%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-white p-4">
+                    <div class="flex items-center">
+                        <div class="bg-amber-100 p-3 rounded-full mr-3">
+                            <i class="fas fa-star text-amber-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-gray-500 text-sm">获得星星数</h3>
+                            <p class="text-xl font-bold">256</p>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="flex justify-between text-xs text-gray-500 mb-1">
+                            <span>本周</span>
+                            <span>42颗</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-amber-500" style="width: 90%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-white p-4">
+                    <div class="flex items-center">
+                        <div class="bg-green-100 p-3 rounded-full mr-3">
+                            <i class="fas fa-fire text-green-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-gray-500 text-sm">连续训练</h3>
+                            <p class="text-xl font-bold">7<span class="text-base">天</span></p>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="flex justify-between text-xs text-gray-500 mb-1">
+                            <span>最长记录</span>
+                            <span>14天</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-green-500" style="width: 50%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 训练频率 -->
+            <div class="card bg-white p-5 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="font-bold text-gray-800">训练频率</h2>
+                    <div class="flex">
+                        <button class="text-xs bg-gray-100 px-2 py-1 rounded mr-2">周</button>
+                        <button class="text-xs bg-primary text-white px-2 py-1 rounded">月</button>
+                    </div>
+                </div>
+                
+                <div class="flex items-end justify-between h-32 px-2">
+                    <div class="flex flex-col items-center">
+                        <div class="chart-bar bg-blue-400 mb-2" style="height: 40px;"></div>
+                        <span class="text-xs text-gray-500">一</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="chart-bar bg-blue-500 mb-2" style="height: 60px;"></div>
+                        <span class="text-xs text-gray-500">二</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="chart-bar bg-blue-400 mb-2" style="height: 35px;"></div>
+                        <span class="text-xs text-gray-500">三</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="chart-bar bg-blue-500 mb-2" style="height: 70px;"></div>
+                        <span class="text-xs text-gray-500">四</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="chart-bar bg-blue-600 mb-2" style="height: 90px;"></div>
+                        <span class="text-xs text-gray-500">五</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="chart-bar bg-blue-400 mb-2" style="height: 50px;"></div>
+                        <span class="text-xs text-gray-500">六</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="chart-bar bg-blue-300 mb-2" style="height: 30px;"></div>
+                        <span class="text-xs text-gray-500">日</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 训练分布 -->
+            <div class="card bg-white p-5">
+                <h2 class="font-bold text-gray-800 mb-4">训练类型分布</h2>
+                
+                <div class="grid grid-cols-4 gap-4 mb-4">
+                    <div class="flex flex-col items-center">
+                        <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-2">
+                            <i class="fas fa-bullseye text-blue-600 text-xl"></i>
+                        </div>
+                        <span class="text-sm font-medium">注意力</span>
+                        <span class="text-xs text-gray-500">35%</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mb-2">
+                            <i class="fas fa-brain text-purple-600 text-xl"></i>
+                        </div>
+                        <span class="text-sm font-medium">记忆力</span>
+                        <span class="text-xs text-gray-500">25%</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-2">
+                            <i class="fas fa-bolt text-green-600 text-xl"></i>
+                        </div>
+                        <span class="text-sm font-medium">反应力</span>
+                        <span class="text-xs text-gray-500">20%</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mb-2">
+                            <i class="fas fa-random text-amber-600 text-xl"></i>
+                        </div>
+                        <span class="text-sm font-medium">灵活性</span>
+                        <span class="text-xs text-gray-500">20%</span>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-100 p-3 rounded-lg">
+                    <p class="text-sm text-gray-700">
+                        <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                        建议增加<b class="text-purple-600">记忆力</b>和<b class="text-amber-600">灵活性</b>训练，促进认知能力均衡发展
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 能力进展 -->
+        <div id="progressTab" class="tab-content">
+            <div class="card insight-card p-5 mb-6">
+                <div class="flex items-start">
+                    <div class="bg-white p-3 rounded-full mr-4">
+                        <i class="fas fa-chart-line text-blue-500 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-800 mb-2">进步报告</h3>
+                        <p class="text-gray-700">
+                            过去30天，小明的<b>持续注意力</b>提升23%，<b>工作记忆</b>提升18%。建议继续坚持每日训练计划。
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 能力雷达图模拟 -->
+            <div class="card bg-white p-5 mb-6">
+                <h2 class="font-bold text-gray-800 mb-4">能力发展评估</h2>
+                
+                <div class="flex justify-center mb-6">
+                    <div class="relative w-64 h-64">
+                        <!-- 雷达图背景 -->
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-56 h-56 border-2 border-gray-200 rounded-full"></div>
+                            <div class="w-44 h-44 border-2 border-gray-200 rounded-full"></div>
+                            <div class="w-32 h-32 border-2 border-gray-200 rounded-full"></div>
+                            <div class="w-20 h-20 border-2 border-gray-200 rounded-full"></div>
+                        </div>
+                        
+                        <!-- 能力点 -->
+                        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                            <div class="text-center">
+                                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-1">
+                                    <i class="fas fa-bullseye text-white"></i>
+                                </div>
+                                <span class="text-xs font-medium">注意力</span>
+                                <div class="stat-badge bg-blue-100 text-blue-800 mt-1">+23%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="absolute top-1/2 right-0 transform translate-y-1/2 translate-x-1/2">
+                            <div class="text-center">
+                                <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-1">
+                                    <i class="fas fa-brain text-white"></i>
+                                </div>
+                                <span class="text-xs font-medium">记忆力</span>
+                                <div class="stat-badge bg-purple-100 text-purple-800 mt-1">+18%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
+                            <div class="text-center">
+                                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-1">
+                                    <i class="fas fa-bolt text-white"></i>
+                                </div>
+                                <span class="text-xs font-medium">反应力</span>
+                                <div class="stat-badge bg-green-100 text-green-800 mt-1">+15%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2">
+                            <div class="text-center">
+                                <div class="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center mx-auto mb-1">
+                                    <i class="fas fa-random text-white"></i>
+                                </div>
+                                <span class="text-xs font-medium">灵活性</span>
+                                <div class="stat-badge bg-amber-100 text-amber-800 mt-1">+12%</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 能力连线 -->
+                        <div class="absolute inset-0">
+                            <svg width="100%" height="100%" viewBox="0 0 100 100" class="absolute top-0 left-0">
+                                <polygon points="50,10 80,50 50,90 20,50" 
+                                         fill="rgba(79, 70, 229, 0.1)" 
+                                         stroke="#4F46E5" 
+                                         stroke-width="1" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <p class="text-sm text-gray-600">
+                        综合能力指数 <span class="font-bold text-primary">78</span>/100
+                    </p>
+                    <div class="progress-bar mt-2">
+                        <div class="progress-fill bg-primary" style="width: 78%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 详细进展 -->
+            <div class="card bg-white p-5">
+                <h2 class="font-bold text-gray-800 mb-4">详细能力进展</h2>
+                
+                <div class="space-y-5">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-2">
+                                    <i class="fas fa-bullseye text-blue-600"></i>
+                                </div>
+                                <span class="font-medium">持续注意力</span>
+                            </div>
+                            <div class="stat-badge bg-blue-100 text-blue-800">+23%</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-blue-500" style="width: 85%"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-2">
+                                    <i class="fas fa-brain text-purple-600"></i>
+                                </div>
+                                <span class="font-medium">工作记忆</span>
+                            </div>
+                            <div class="stat-badge bg-purple-100 text-purple-800">+18%</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-purple-500" style="width: 75%"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-2">
+                                    <i class="fas fa-bolt text-green-600"></i>
+                                </div>
+                                <span class="font-medium">反应抑制</span>
+                            </div>
+                            <div class="stat-badge bg-green-100 text-green-800">+15%</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-green-500" style="width: 70%"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center mr-2">
+                                    <i class="fas fa-random text-amber-600"></i>
+                                </div>
+                                <span class="font-medium">认知灵活性</span>
+                            </div>
+                            <div class="stat-badge bg-amber-100 text-amber-800">+12%</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-amber-500" style="width: 65%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 消息通知 -->
+        <div id="notificationsTab" class="tab-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-bold text-lg text-gray-800">通知消息</h2>
+                <button class="text-primary text-sm font-medium">全部已读</button>
+            </div>
+            
+            <div class="space-y-3">
+                <div class="notification-item unread card bg-white p-4">
+                    <div class="flex">
+                        <div class="bg-blue-100 p-2 rounded-full mr-3">
+                            <i class="fas fa-trophy text-blue-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800 mb-1">新成就解锁!</h3>
+                            <p class="text-sm text-gray-600">小明获得了"专注小达人"成就，连续7天完成训练计划</p>
+                            <p class="text-xs text-gray-400 mt-2">2小时前</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="notification-item card bg-white p-4">
+                    <div class="flex">
+                        <div class="bg-green-100 p-2 rounded-full mr-3">
+                            <i class="fas fa-chart-line text-green-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800 mb-1">周报告已生成</h3>
+                            <p class="text-sm text-gray-600">查看小明上周的训练报告，注意力提升15%</p>
+                            <p class="text-xs text-gray-400 mt-2">昨天</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="notification-item card bg-white p-4">
+                    <div class="flex">
+                        <div class="bg-amber-100 p-2 rounded-full mr-3">
+                            <i class="fas fa-star text-amber-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800 mb-1">星星奖励</h3>
+                            <p class="text-sm text-gray-600">小明本周获得42颗星星，可兑换新角色皮肤</p>
+                            <p class="text-xs text-gray-400 mt-2">2023年11月5日</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="notification-item card bg-white p-4">
+                    <div class="flex">
+                        <div class="bg-purple-100 p-2 rounded-full mr-3">
+                            <i class="fas fa-gamepad text-purple-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800 mb-1">新游戏上线</h3>
+                            <p class="text-sm text-gray-600">"记忆迷宫"已上线，帮助提升工作记忆能力</p>
+                            <p class="text-xs text-gray-400 mt-2">2023年11月2日</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8">
+                <h2 class="font-bold text-lg text-gray-800 mb-4">设置提醒</h2>
+                
+                <div class="card bg-white p-4 mb-3">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="font-medium text-gray-800">每日训练提醒</h3>
+                            <p class="text-sm text-gray-600">下午 5:00 · 每天</p>
+                        </div>
+                        <div class="relative">
+                            <input type="checkbox" class="sr-only" id="daily-reminder" checked>
+                            <label for="daily-reminder" class="toggle-switch block w-12 h-6 bg-gray-200 rounded-full cursor-pointer">
+                                <span class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform translate-x-6"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-white p-4 mb-3">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="font-medium text-gray-800">周报告通知</h3>
+                            <p class="text-sm text-gray-600">周一上午 9:00</p>
+                        </div>
+                        <div class="relative">
+                            <input type="checkbox" class="sr-only" id="weekly-report" checked>
+                            <label for="weekly-report" class="toggle-switch block w-12 h-6 bg-gray-200 rounded-full cursor-pointer">
+                                <span class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform translate-x-6"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-white p-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="font-medium text-gray-800">成就解锁通知</h3>
+                            <p class="text-sm text-gray-600">即时通知</p>
+                        </div>
+                        <div class="relative">
+                            <input type="checkbox" class="sr-only" id="achievement-notify" checked>
+                            <label for="achievement-notify" class="toggle-switch block w-12 h-6 bg-gray-200 rounded-full cursor-pointer">
+                                <span class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform translate-x-6"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 底部导航 -->
+    <nav class="bg-white border-t border-gray-200 py-3 px-8 flex justify-around">
+        <a href="index.html" class="text-gray-500 flex flex-col items-center">
+            <i class="fas fa-home text-lg"></i>
+            <span class="text-xs mt-1">首页</span>
+        </a>
+        <a href="plan.html" class="text-gray-500 flex flex-col items-center">
+            <i class="fas fa-calendar-alt text-lg"></i>
+            <span class="text-xs mt-1">计划</span>
+        </a>
+        <a href="games.html" class="text-gray-500 flex flex-col items-center">
+            <i class="fas fa-gamepad text-lg"></i>
+            <span class="text-xs mt-1">游戏</span>
+        </a>
+        <a href="parent.html" class="text-primary flex flex-col items-center">
+            <i class="fas fa-user-friends text-lg"></i>
+            <span class="text-xs mt-1">家长</span>
+        </a>
+        <a href="profile.html" class="text-gray-500 flex flex-col items-center">
+            <i class="fas fa-user text-lg"></i>
+            <span class="text-xs mt-1">我的</span>
+        </a>
+    </nav>
+
+    <script>
+        // 标签切换功能
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.dataset.tab;
+                
+                // 更新按钮状态
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // 更新内容显示
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === `${tabId}Tab`) {
+                        content.classList.add('active');
+                        content.classList.add('fade-in');
+                    }
+                });
+            });
+        });
+        
+        // 孩子选择器
+        const childSelectors = document.querySelectorAll('.child-selector');
+        childSelectors.forEach(selector => {
+            selector.addEventListener('click', function() {
+                childSelectors.forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 更新数据为所选孩子的数据
+                alert(`切换到 ${this.querySelector('h3').textContent} 的数据`);
+            });
+        });
+        
+        // 通知标记为已读
+        const notifications = document.querySelectorAll('.notification-item.unread');
+        notifications.forEach(notification => {
+            notification.addEventListener('click', function() {
+                this.classList.remove('unread');
+            });
+        });
+        
+        // 切换开关
+        const toggleSwitches = document.querySelectorAll('.toggle-switch');
+        toggleSwitches.forEach(switchElement => {
+            switchElement.addEventListener('click', function() {
+                const checkbox = this.previousElementSibling;
+                checkbox.checked = !checkbox.checked;
+                
+                const span = this.querySelector('span');
+                if (checkbox.checked) {
+                    span.style.transform = 'translateX(6px)';
+                    this.style.backgroundColor = '#4F46E5';
+                } else {
+                    span.style.transform = 'translateX(0)';
+                    this.style.backgroundColor = '#E5E7EB';
+                }
+            });
+        });
+        
+        // 模拟图表动画
+        const chartBars = document.querySelectorAll('.chart-bar');
+        chartBars.forEach((bar, index) => {
+            // 设置初始高度为0
+            bar.style.height = '0';
+            
+            // 延迟设置实际高度，产生动画效果
+            setTimeout(() => {
+                const heights = [40, 60, 35, 70, 90, 50, 30]; // 实际高度值
+                bar.style.height = `${heights[index]}px`;
+            }, 300 + index * 100);
+        });
+    </script>
+</body>
+</html>
